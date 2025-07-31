@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đố Vui</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+    body { font-family: 'Nunito', sans-serif; }
+    .bounce-in { animation: bounceIn 0.6s ease-out; }
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    .pulse-gentle { animation: pulseGentle 2s infinite; }
+    .wiggle { animation: wiggle 0.5s ease-in-out; }
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.05); }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulseGentle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-3deg); }
+      75% { transform: rotate(3deg); }
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body class="gradient-bg min-h-screen">
+  <div class="container mx-auto px-4 py-8">
+    <div class="text-center mb-8">
+      <h1 class="text-5xl font-bold text-white mb-4 bounce-in">🎯 Đố Vui 🎯</h1>
+      <p class="text-xl text-white/90 fade-in">Hãy thử thách kiến thức của bạn!</p>
+    </div>
+
+    <div id="topicScreen" class="fade-in">
+      <div class="bg-white rounded-3xl p-8 card-shadow max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">🌟 Chọn chủ đề yêu thích 🌟</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <button onclick="selectTopic('math')" class="topic-btn bg-pink-500 hover:bg-pink-600 text-white font-bold py-6 px-6 rounded-2xl card-shadow">🔢 Toán học</button>
+          <button onclick="selectTopic('literature')" class="topic-btn bg-purple-500 hover:bg-purple-600 text-white font-bold py-6 px-6 rounded-2xl card-shadow">📚 Văn học</button>
+          <button onclick="selectTopic('history')" class="topic-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-6 px-6 rounded-2xl card-shadow">🏛️ Lịch sử</button>
+          <button onclick="selectTopic('geography')" class="topic-btn bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-6 px-6 rounded-2xl card-shadow">🌍 Địa lý</button>
+          <button onclick="selectTopic('quiz')" class="topic-btn bg-green-500 hover:bg-green-600 text-white font-bold py-6 px-6 rounded-2xl card-shadow">🧠 Đố vui</button>
+          <button onclick="selectTopic('synthetic')" class="topic-btn bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-6 px-6 rounded-2xl card-shadow">🎲 Tổng hợp</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="questionScreen" class="hidden">
+      <div class="bg-white rounded-3xl p-8 card-shadow max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+          <button onclick="backToTopics()" class="bg-gray-300 px-4 py-2 rounded-full">← Quay lại</button>
+          <div id="topicHeader" class="text-2xl font-bold"></div>
+          <div>Câu <span id="questionNumber">1</span></div>
+        </div>
+
+        <div class="mb-6">
+          <h3 class="text-2xl font-bold mb-4">❓ Câu hỏi:</h3>
+          <p id="questionText" class="text-lg"></p>
+        </div>
+
+        <div class="flex gap-4 justify-center mb-6">
+          <button id="showAnswerBtn" onclick="showAnswer()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full">🔍 Xem đáp án</button>
+          <button id="explainBtn" onclick="showExplanation()" class="hidden bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-full">💡 Giải thích</button>
+          <button id="nextBtn" onclick="nextQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-full">➡️ Câu tiếp theo</button>
+        </div>
+
+        <div id="answerDisplay" class="hidden mt-6 p-4 bg-green-100 rounded-xl">
+          <h4 class="font-bold mb-2">✅ Đáp án:</h4>
+          <p id="answerText" class="text-lg font-medium"></p>
+        </div>
+
+        <div id="explanationDisplay" class="hidden mt-4 p-4 bg-yellow-100 rounded-xl">
+          <h4 class="font-bold mb-2">💭 Giải thích:</h4>
+          <p id="explanationText"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script chính -->
+  <script>
+    const allQuestions = {
+      math: [],
+      literature: [],
+      history: [],
+      quiz: [],
+      geography: [],
+      synthetic: []
+    };
+
+    let currentTopic = '';
+    let currentQuestionIndex = 0;
+    let currentQuestions = [];
+
+    // Fisher-Yates shuffle algorithm để xáo trộn câu hỏi
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (typeof qMath !== 'undefined') {
+        allQuestions.math = [...qMath];
+      }
+      if (typeof qLiterature !== 'undefined') {
+        allQuestions.literature = [...qLiterature];
+      }
+      if (typeof qQuiz !== 'undefined') {
+        allQuestions.quiz = [...qQuiz];
+      }
+      if (typeof qHistory !== 'undefined') {
+        allQuestions.history = [...qHistory];
+      }
+      if (typeof qGeography !== 'undefined') {
+        allQuestions.geography = [...qGeography];
+      }
+
+      // Tạo chủ đề "synthetic" từ tất cả các câu hỏi
+      allQuestions.synthetic = [
+        ...allQuestions.math,
+        ...allQuestions.literature,
+        ...allQuestions.history,
+        ...allQuestions.quiz,
+        ...allQuestions.geography
+      ];
+      
+      // Xáo trộn các mảng câu hỏi của từng chủ đề
+      for (const topic in allQuestions) {
+        allQuestions[topic] = shuffleArray(allQuestions[topic]);
+      }
+      
+      // Log to help debug
+      console.log("Loaded questions:", {
+        math: allQuestions.math.length,
+        literature: allQuestions.literature.length,
+        history: allQuestions.history.length,
+        quiz: allQuestions.quiz.length,
+        geography: allQuestions.geography.length,
+        synthetic: allQuestions.synthetic.length
+      });
+    });
+
+    function selectTopic(topic) {
+      currentTopic = topic;
+      currentQuestions = [...allQuestions[topic]]; // Sử dụng bản sao của mảng
+      
+      // Check if we have questions for this topic
+      if (!currentQuestions || currentQuestions.length === 0) {
+        alert(`Không có câu hỏi cho chủ đề ${topic}!`);
+        return;
+      }
+      
+      currentQuestionIndex = 0;
+      document.getElementById('topicScreen').classList.add('hidden');
+      document.getElementById('questionScreen').classList.remove('hidden');
+      
+      // Hiển thị tên chủ đề tương ứng hoặc "TỔNG HỢP" cho chủ đề synthetic
+      const topicDisplayNames = {
+        'math': 'TOÁN HỌC',
+        'literature': 'VĂN HỌC',
+        'history': 'LỊCH SỬ',
+        'quiz': 'ĐỐ VUI',
+        'geography': 'ĐỊA LÝ',
+        'synthetic': 'TỔNG HỢP'
+      };
+      document.getElementById('topicHeader').textContent = topicDisplayNames[topic] || topic.toUpperCase();
+      
+      showQuestion();
+    }
+
+    function showQuestion() {
+      // Make sure we have a valid question
+      if (!currentQuestions || currentQuestionIndex >= currentQuestions.length) {
+        alert('Không tìm thấy câu hỏi!');
+        backToTopics();
+        return;
+      }
+      
+      const q = currentQuestions[currentQuestionIndex];
+      document.getElementById('questionNumber').textContent = currentQuestionIndex + 1;
+      document.getElementById('questionText').textContent = q.question || "Không tìm thấy nội dung câu hỏi";
+      
+      // Reset UI state
+      document.getElementById('showAnswerBtn').classList.remove('hidden');
+      document.getElementById('explainBtn').classList.add('hidden');
+      document.getElementById('answerDisplay').classList.add('hidden');
+      document.getElementById('explanationDisplay').classList.add('hidden');
+    }
+
+    function showAnswer() {
+      const q = currentQuestions[currentQuestionIndex];
+      const answer = q.answer || q.ans || "Không tìm thấy đáp án";
+      
+      document.getElementById('answerText').textContent = answer;
+      document.getElementById('answerDisplay').classList.remove('hidden');
+      document.getElementById('explainBtn').classList.remove('hidden');
+    }
+
+    function showExplanation() {
+      const q = currentQuestions[currentQuestionIndex];
+      const explanation = q.explanation || q.explain || "Không có giải thích cho câu hỏi này.";
+      
+      document.getElementById('explanationText').textContent = explanation;
+      document.getElementById('explanationDisplay').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex >= currentQuestions.length) {
+        alert('🎉 Bạn đã hoàn thành tất cả câu hỏi!');
+        backToTopics();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function backToTopics() {
+      document.getElementById('questionScreen').classList.add('hidden');
+      document.getElementById('topicScreen').classList.remove('hidden');
+    }
+  </script>
+
+  <!-- Tải script dữ liệu sau cùng -->
+  <script src="qMath.js"></script>
+  <script src="qLiterature.js"></script>
+  <script src="qQuiz.js"></script>
+  <script src="qHistory.js"></script>
+  <script src="qGeography.js"></script>
+</body>
+</html>
+  </script>
+
+  <!-- Tải script dữ liệu sau cùng -->
+  <script src="qMath.js"></script>
+  <script src="qLiterature.js"></script>
+  <script src="qQuiz.js"></script>
+  <script src="qHistory.js"></script>
+  <script src="qGeography.js"></script>
+</body>
+</html>

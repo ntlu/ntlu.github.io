@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rắn săn mồi 2 người chơi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style>
+        body {
+            font-family: 'Press Start 2P', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column; /* Change to column layout */
+            align-items: center;
+            min-height: 100vh;
+            background-color: #111827;
+        }
+
+        .game-container {
+            text-align: center;
+            background-color: #1F2937;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            max-width: 90%;
+            width: 90%; /* Take up most of the width */
+            margin-bottom: 20px; /* Add space between game containers */
+        }
+
+        h1 {
+            color: #6366F1;
+            margin-bottom: 16px;
+            font-size: 2em;
+        }
+
+        #scoreDisplay1, #scoreDisplay2 {
+            font-size: 1.2em;
+            color: #A855F7;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            background-color: #374151;
+            border: 4px solid #4B5563;
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        #button-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Take up full width of parent */
+        }
+
+        button {
+            font-family: 'Press Start 2P', sans-serif;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1em;
+            margin: 4px 8px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #message-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .show-message {
+            opacity: 1;
+        }
+
+        #speed-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        #speed-label {
+            color: #CBD5E0;
+            font-size: 0.8em;
+            margin-bottom: 8px;
+            display: block;
+            text-align: center;
+        }
+
+        #speedRange {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #top-scores-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #top-scores-title {
+            color: #A0AEC0;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        #top-scores-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 auto;
+            max-width: 200px;
+            color: #E2E8F0;
+            font-size: 1em;
+        }
+
+        #top-scores-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid #4A5568;
+        }
+
+        #top-scores-list li:last-child {
+            border-bottom: none;
+        }
+
+        /* Styles for 2-player layout */
+        @media screen and (min-width: 640px) {
+            body {
+                padding: 20px;
+            }
+            .game-container {
+                max-width: 45%; /* Adjust as needed */
+                margin-right: 20px; /* Space between the two containers */
+                margin-bottom: 0;
+            }
+            #scoreDisplay {
+                flex-direction: column;
+            }
+            .two-player-container {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            #button-container {
+                flex-direction: row; /* Arrange buttons horizontally */
+                justify-content: center; /* Center the buttons */
+                margin-top: 0; /* Remove top margin if needed */
+            }
+            button {
+                margin: 4px 10px; /* Adjust horizontal margin between buttons */
+                width: auto; /* Reset button width to auto */
+                max-width: none; /* Reset max-width if set */
+            }
+            #speed-container{
+                width: 45%;
+                margin-top: 0;
+            }
+        }
+
+        @media screen and (max-width: 600px) {
+            .game-container {
+                padding: 16px;
+                width: 95%;
+            }
+
+            h1 {
+                font-size: 1.75em;
+            }
+
+            #scoreDisplay {
+                font-size: 1em;
+                flex-direction: column;
+            }
+
+            #scoreDisplay p{
+                margin-bottom: 10px;
+            }
+
+            canvas {
+                width: 100%;
+                height: auto;
+            }
+
+            button {
+                font-size: 1em;
+                padding: 10px 18px;
+            }
+
+            #speed-label {
+                font-size: 0.7em;
+            }
+
+            #top-scores-title {
+                font-size: 1em;
+            }
+
+            #top-scores-list {
+                font-size: 0.9em;
+            }
+             #button-container {
+                flex-direction: column;
+            }
+            button{
+               width: 100%;
+               margin: 4px 0;
+            }
+            #speed-container{
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-inter antialiased">
+    <h1 class="text-purple-500 text-2xl font-bold mb-4">Rắn săn mồi 2 người chơi</h1>
+    <div class="two-player-container">
+        <div class="game-container">
+            <div id="scoreDisplay1" class="text-purple-300 text-lg mb-6">Người chơi 1: 0</div>
+            <canvas id="gameCanvas1" width="400" height="400"></canvas>
+        </div>
+        <div class="game-container">
+            <div id="scoreDisplay2" class="text-purple-300 text-lg mb-6">Người chơi 2: 0</div>
+            <canvas id="gameCanvas2" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+    <div id="speed-container" class="mt-6 flex flex-col items-center">
+        <label for="speedRange" id="speed-label" class="text-gray-300 text-sm mb-2 block text-center">Tốc độ:</label>
+        <input type="range" id="speedRange" min="1" max="20" value="10" class="">
+    </div>
+    <div id="button-container" class="mt-6 flex flex-col items-center">
+        <button id="startButton" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Bắt đầu</button>
+        <button id="pauseButton" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline my-2">Tạm dừng</button>
+        <button id="resetButton" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Chơi lại</button>
+    </div>
+    <div id="message-container" class="hidden"></div>
+    <div id="top-scores-container" class="mt-8">
+        <h2 id="top-scores-title" class="text-gray-400 text-md font-semibold mb-3">Top 5 Điểm Cao Nhất</h2>
+        <ol id="top-scores-list"></ol>
+    </div>
+    <script>
+        const canvas1 = document.getElementById("gameCanvas1");
+        const ctx1 = canvas1.getContext("2d");
+        const canvas2 = document.getElementById("gameCanvas2");
+        const ctx2 = canvas2.getContext("2d");
+        const scoreDisplay1 = document.getElementById("scoreDisplay1");
+        const scoreDisplay2 = document.getElementById("scoreDisplay2");
+        const startButton = document.getElementById("startButton");
+        const pauseButton = document.getElementById("pauseButton");
+        const resetButton = document.getElementById("resetButton");
+        const messageContainer = document.getElementById("message-container");
+        const speedRange = document.getElementById("speedRange");
+        const topScoresList = document.getElementById("top-scores-list");
+
+        let gameRunning = false;
+        let snake1 = [{ x: 200, y: 200 }];
+        let snake2 = [{ x: 100, y: 100 }];
+        let food = {};
+        let direction1 = "right";
+        let direction2 = "right";
+        let score1 = 0;
+        let score2 = 0;
+        let gameInterval;
+        let speed = 10;
+        let gameSpeed = 0;
+        const gridSize = 20;
+        const maxTopScores = 5;
+        let topScores = JSON.parse(localStorage.getItem('topScores')) || [];
+        let numPlayers = 2;
+
+
+        function showMessage(message) {
+            messageContainer.textContent = message;
+            messageContainer.classList.remove("hidden");
+            setTimeout(() => {
+                messageContainer.classList.add("hidden");
+            }, 3000);
+        }
+
+        function generateFood() {
+            food = {
+                x: Math.floor(Math.random() * (canvas1.width / gridSize)) * gridSize,
+                y: Math.floor(Math.random() * (canvas1.height / gridSize)) * gridSize,
+            };
+        }
+
+        function draw() {
+            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+            ctx2.clearRect(0, 0, canvas2.width, canvas2.height);
+
+            // Draw snake 1 on canvas1
+            for (let i = 0; i < snake1.length; i++) {
+                ctx1.fillStyle = i === 0 ? "#A7F3D0" : "#34D399";
+                ctx1.fillRect(snake1[i].x, snake1[i].y, gridSize, gridSize);
+                ctx1.strokeStyle = "#065F46";
+                ctx1.strokeRect(snake1[i].x, snake1[i].y, gridSize, gridSize);
+            }
+
+            // Draw snake 2 on canvas2
+            for (let i = 0; i < snake2.length; i++) {
+                ctx2.fillStyle = i === 0 ? "#FCD34D" : "#FBBF24";
+                ctx2.fillRect(snake2[i].x, snake2[i].y, gridSize, gridSize);
+                ctx2.strokeStyle = "#D97706";
+                ctx2.strokeRect(snake2[i].x, snake2[i].y, gridSize, gridSize);
+            }
+
+            // Draw food on both canvases
+            ctx1.fillStyle = "#F87171";
+            ctx1.fillRect(food.x, food.y, gridSize, gridSize);
+            ctx1.strokeStyle = "#9F1239";
+            ctx1.strokeRect(food.x, food.y, gridSize, gridSize);
+
+            ctx2.fillStyle = "#F87171";
+            ctx2.fillRect(food.x, food.y, gridSize, gridSize);
+            ctx2.strokeStyle = "#9F1239";
+            ctx2.strokeRect(food.x, food.y, gridSize, gridSize);
+        }
+
+        function update() {
+            if (!gameRunning) return;
+
+            // Update snake 1
+            const head1 = { x: snake1[0].x, y: snake1[0].y };
+            switch (direction1) {
+                case "w": // Changed to WASD
+                    head1.y -= gridSize;
+                    break;
+                case "s":  // Changed to WASD
+                    head1.y += gridSize;
+                    break;
+                case "a":  // Changed to WASD
+                    head1.x -= gridSize;
+                    break;
+                case "d":  // Changed to WASD
+                    head1.x += gridSize;
+                    break;
+            }
+
+            // Update snake 2
+            const head2 = { x: snake2[0].x, y: snake2[0].y };
+            switch (direction2) {
+                case "ArrowUp":
+                    head2.y -= gridSize;
+                    break;
+                case "ArrowDown":
+                    head2.y += gridSize;
+                    break;
+                case "ArrowLeft":
+                    head2.x -= gridSize;
+                    break;
+                case "ArrowRight":
+                    head2.x += gridSize;
+                    break;
+            }
+
+             // Check for game over conditions for snake 1
+            if (
+                head1.x < 0 ||
+                head1.x >= canvas1.width ||
+                head1.y < 0 ||
+                head1.y >= canvas1.height ||
+                checkCollision(head1, snake2)
+            ) {
+                gameOver();
+                return;
+            }
+
+            // Check for game over conditions for snake 2
+            if (
+                head2.x < 0 ||
+                head2.x >= canvas2.width ||
+                head2.y < 0 ||
+                head2.y >= canvas2.height ||
+                checkCollision(head2, snake1)
+            ) {
+                gameOver();
+                return;
+            }
+
+            snake1.unshift(head1);
+            snake2.unshift(head2);
+
+            if (head1.x === food.x && head1.y === food.y) {
+                score1++;
+                generateFood();
+                scoreDisplay1.textContent = `Người chơi 1: ${score1}`;
+            } else {
+                snake1.pop();
+            }
+
+            if (head2.x === food.x && head2.y === food.y) {
+                score2++;
+                generateFood();
+                scoreDisplay2.textContent = `Người chơi 2: ${score2}`;
+            } else {
+                snake2.pop();
+            }
+
+            draw();
+        }
+
+        function checkCollision(head, otherSnake) {
+            for (let i = 0; i < otherSnake.length; i++) {
+                if (head.x === otherSnake[i].x && head.y === otherSnake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
+        function startGame() {
+            if (gameRunning) return;
+            gameRunning = true;
+            hideButtons();
+            generateFood();
+            gameInterval = setInterval(update, gameSpeed);
+            showMessage("Game đã bắt đầu!");
+            numPlayers = 2;
+        }
+
+        function pauseGame() {
+            if (!gameRunning) return;
+            gameRunning = false;
+            clearInterval(gameInterval);
+            showButtons();
+            showMessage("Game đã tạm dừng!");
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameInterval);
+            showButtons();
+             saveScore(score1);
+            saveScore(score2);
+            updateTopScoresDisplay();
+            showMessage("Game kết thúc! Bạn thua cuộc!");
+            snake1 = [{ x: 200, y: 200 }];
+            snake2 = [{ x: 100, y: 100 }];
+            direction1 = "right";
+            direction2 = "right";
+            score1 = 0;
+            score2 = 0;
+            scoreDisplay1.textContent = `Người chơi 1: ${score1}`;
+            scoreDisplay2.textContent = `Người chơi 2: ${score2}`;
+        }
+
+        function resetGame() {
+            pauseGame();
+            startGame();
+        }
+
+       function handleKeyDown(e) {
+            if (!gameRunning) return;
+            // Player 1 controls (WASD keys)
+            if (e.key === "w" && direction1 !== "s") {
+                direction1 = "w";
+            } else if (e.key === "s" && direction1 !== "w") {
+                direction1 = "s";
+            } else if (e.key === "a" && direction1 !== "d") {
+                direction1 = "a";
+            } else if (e.key === "d" && direction1 !== "a") {
+                direction1 = "d";
+            }
+
+            // Player 2 controls (Arrow keys)
+            if (e.key === "ArrowUp" && direction2 !== "down") {
+                direction2 = "ArrowUp";
+            } else if (e.key === "ArrowDown" && direction2 !== "up") {
+                direction2 = "ArrowDown";
+            } else if (e.key === "ArrowLeft" && direction2 !== "right") {
+                direction2 = "ArrowLeft";
+            } else if (e.key === "ArrowRight" && direction2 !== "left") {
+                direction2 = "ArrowRight";
+            }
+        }
+
+        function hideButtons() {
+            startButton.style.display = "none";
+            pauseButton.style.display = "none";
+            resetButton.style.display = "none";
+        }
+
+        function showButtons() {
+            startButton.style.display = "block";
+            pauseButton.style.display = "block";
+            resetButton.style.display = "block";
+        }
+ 
+ 
+        function saveScore(score) {
+            topScores.push(score);
+            topScores.sort((a, b) => b - a);
+            if (topScores.length > maxTopScores) {
+                topScores.pop();
+            }
+            localStorage.setItem('topScores', JSON.stringify(topScores));
+        }
+
+        function updateTopScoresDisplay() {
+            topScoresList.innerHTML = '';
+            topScores.forEach((score, index) => {
+                const li = document.createElement('li');
+                li.textContent = `Top ${index + 1}: ${score} điểm`;
+                topScoresList.appendChild(li);
+            });
+        }
+
+        startButton.addEventListener("click", startGame);
+        pauseButton.addEventListener("click", pauseGame);
+        resetButton.addEventListener("click", resetGame);
+        document.addEventListener("keydown", handleKeyDown);
+
+        speedRange.addEventListener("input", function () {
+            speed = parseInt(this.value);
+            gameSpeed = 200 - (speed * 10);
+            if (gameRunning) {
+                clearInterval(gameInterval);
+                gameInterval = setInterval(update, gameSpeed);
+            }
+        });
+
+        // Initial setup
+        gameSpeed = 200 - (speed * 10);
+        showButtons();
+        draw();
+        updateTopScoresDisplay();
+    </script>
+</body>
+</html>
