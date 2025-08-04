@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Editor Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+        }
+        .crop-overlay {
+            position: absolute;
+            border: 2px dashed #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+            cursor: move;
+            display: none;
+        }
+        .crop-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #3b82f6;
+            border: 1px solid white;
+            border-radius: 50%;
+            cursor: nw-resize;
+            z-index: 10;
+        }
+        .text-overlay {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            border: 1px dashed transparent;
+        }
+        .text-overlay:hover {
+            border-color: #3b82f6;
+        }
+        .text-overlay.selected {
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+    <div class="flex h-screen">
+        <!-- Left Toolbar -->
+        <div class="w-64 bg-gray-800 border-r border-gray-700 p-4">
+            <h2 class="text-xl font-bold mb-6 text-blue-400">Photo Editor Pro</h2>
+            
+            <!-- Upload Section -->
+            <div class="mb-6">
+                <input type="file" id="imageUpload" accept="image/*" class="hidden">
+                <button onclick="document.getElementById('imageUpload').click()" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg mb-2 transition-colors">
+                    📁 Tải ảnh lên
+                </button>
+                <button onclick="downloadImage()" 
+                        class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg mb-2 transition-colors">
+                    💾 Tải xuống
+                </button>
+                <button onclick="resetImage()" 
+                        class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
+                    🔄 Reset
+                </button>
+            </div>
+
+            <!-- Tools -->
+            <div class="space-y-4">
+                <div class="tool-section">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-300">🔧 Công cụ</h3>
+                    
+                    <!-- Brightness -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">☀️ Độ sáng</label>
+                        <input type="range" id="brightness" min="-100" max="100" value="0" 
+                               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <span id="brightnessValue" class="text-xs text-gray-400">0%</span>
+                    </div>
+
+                    <!-- Contrast -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">🌓 Độ tương phản</label>
+                        <input type="range" id="contrast" min="-100" max="100" value="0" 
+                               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <span id="contrastValue" class="text-xs text-gray-400">0%</span>
+                    </div>
+
+                    <!-- Crop Tool -->
+                    <button id="cropTool" onclick="toggleCropMode()" 
+                            class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg mb-2 transition-colors">
+                        ✂️ Cắt ảnh
+                    </button>
+                    <button id="applyCrop" onclick="applyCrop()" style="display:none"
+                            class="w-full bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg mb-2 transition-colors">
+                        ✅ Áp dụng cắt
+                    </button>
+
+                    <!-- Text Tool -->
+                    <button onclick="addText()" 
+                            class="w-full bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg mb-2 transition-colors">
+                        📝 Thêm chữ
+                    </button>
+
+                    <!-- Watermark Tool -->
+                    <button id="watermarkToggle" onclick="toggleWatermark()" 
+                            class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg mb-4 transition-colors">
+                        💧 Thêm Watermark
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Canvas Area -->
+        <div class="flex-1 bg-gray-900 flex items-center justify-center p-8">
+            <div class="canvas-container">
+                <canvas id="canvas" class="max-h-[80vh] border border-gray-600 rounded-lg shadow-2xl"></canvas>
+                <div id="cropOverlay" class="crop-overlay">
+                    <div class="crop-handle" style="top: -5px; left: -5px;"></div>
+                    <div class="crop-handle" style="top: -5px; right: -5px;"></div>
+                    <div class="crop-handle" style="bottom: -5px; left: -5px;"></div>
+                    <div class="crop-handle" style="bottom: -5px; right: -5px;"></div>
+                    <!-- Thêm các nút ở giữa cạnh để kéo dễ dàng hơn -->
+                    <div class="crop-handle" style="top: -5px; left: 50%; transform: translateX(-50%);"></div>
+                    <div class="crop-handle" style="bottom: -5px; left: 50%; transform: translateX(-50%);"></div>
+                    <div class="crop-handle" style="left: -5px; top: 50%; transform: translateY(-50%);"></div>
+                    <div class="crop-handle" style="right: -5px; top: 50%; transform: translateY(-50%);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="w-64 bg-gray-800 border-l border-gray-700 p-4">
+            <h3 class="text-lg font-semibold mb-4 text-gray-300">⚙️ Tùy chọn văn bản</h3>
+            
+            <div id="textControls" style="display:none" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Nội dung</label>
+                    <input type="text" id="textContent" placeholder="Nhập văn bản..." 
+                           class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white" oninput="liveUpdateText()">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Font size</label>
+                    <input type="range" id="fontSize" min="12" max="72" value="24" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer" oninput="liveUpdateText()">
+                    <span id="fontSizeValue" class="text-xs text-gray-400">24px</span>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Màu chữ</label>
+                    <input type="color" id="textColor" value="#ffffff" 
+                           class="w-full h-10 bg-gray-700 border border-gray-600 rounded cursor-pointer" oninput="liveUpdateText()">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Font</label>
+                    <select id="fontFamily" class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white" onchange="liveUpdateText()">
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Verdana">Verdana</option>
+                    </select>
+                </div>
+                
+                <!-- Đã loại bỏ nút cập nhật văn bản vì giờ cập nhật theo thời gian thực -->
+                
+                <button onclick="deleteSelectedText()" 
+                        class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
+                    Xóa văn bản
+                </button>
+            </div>
+
+            <!-- Watermark Controls -->
+            <div id="watermarkControls" style="display:none" class="space-y-4 mt-6 border-t border-gray-700 pt-4">
+                <h3 class="text-lg font-semibold mb-4 text-gray-300">💧 Tùy chọn Watermark</h3>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Nội dung</label>
+                    <input type="text" id="watermarkText" value="WATERMARK" 
+                           class="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Khoảng cách ngang</label>
+                    <input type="range" id="watermarkSpacingX" min="50" max="300" value="150" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="spacingXValue" class="text-xs text-gray-400">150px</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Khoảng cách dọc</label>
+                    <input type="range" id="watermarkSpacingY" min="50" max="300" value="100" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="spacingYValue" class="text-xs text-gray-400">100px</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Độ trong suốt</label>
+                    <input type="range" id="watermarkOpacity" min="0.05" max="1" value="0.3" step="0.05" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="opacityValue" class="text-xs text-gray-400">30%</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Độ nghiêng</label>
+                    <input type="range" id="watermarkRotation" min="-90" max="90" value="-30" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="rotationValue" class="text-xs text-gray-400">-30°</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Kích thước chữ</label>
+                    <input type="range" id="watermarkSize" min="10" max="50" value="20" 
+                           class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                    <span id="sizeValue" class="text-xs text-gray-400">20px</span>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="block text-sm font-medium mb-2">Màu sắc</label>
+                    <input type="color" id="watermarkColor" value="#ffffff" 
+                           class="w-full h-8 bg-gray-700 border border-gray-600 rounded cursor-pointer">
+                </div>
+            </div>
+            
+            <div class="mt-8">
+                <h4 class="text-md font-semibold mb-2 text-gray-300">📊 Thông tin ảnh</h4>
+                <div id="imageInfo" class="text-sm text-gray-400">
+                    Chưa có ảnh nào được tải lên
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let originalImage = null;
+        let currentImage = null;
+        let brightness = 0;
+        let contrast = 0;
+        let cropMode = false;
+        let cropStart = null;
+        let cropEnd = null;
+        let textElements = [];
+        let selectedTextElement = null;
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+        let watermarkEnabled = false;
+        let watermarkSettings = {
+            text: 'WATERMARK',
+            spacingX: 150,
+            spacingY: 100,
+            opacity: 0.3,
+            rotation: -30,
+            size: 20,
+            color: '#ffffff'
+        };
+        
+        // Thêm biến cho phép hiển thị viền text khi di chuột qua
+        let hoveredTextElement = null;
+        
+        // Đếm số lượng text đã thêm để đặt tên
+        let textCounter = 0;
+
+        // Image upload handler
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Resize image to max height 80vh
+                        const maxHeight = window.innerHeight * 0.8;
+                        let newWidth = img.width;
+                        let newHeight = img.height;
+                        
+                        if (newHeight > maxHeight) {
+                            const ratio = maxHeight / newHeight;
+                            newWidth = img.width * ratio;
+                            newHeight = maxHeight;
+                        }
+                        
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        
+                        originalImage = img;
+                        currentImage = img;
+                        
+                        drawImage();
+                        updateImageInfo(newWidth, newHeight);
+                        resetControls();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Brightness control
+        document.getElementById('brightness').addEventListener('input', function(e) {
+            brightness = parseInt(e.target.value);
+            document.getElementById('brightnessValue').textContent = brightness + '%';
+            applyFilters();
+        });
+
+        // Contrast control
+        document.getElementById('contrast').addEventListener('input', function(e) {
+            contrast = parseInt(e.target.value);
+            document.getElementById('contrastValue').textContent = contrast + '%';
+            applyFilters();
+        });
+
+        // Font size control - giờ đây việc cập nhật fontSizeValue được xử lý trong liveUpdateText()
+        // Nên chúng ta không cần event listener riêng nữa
+        
+        // Watermark controls
+        document.getElementById('watermarkText').addEventListener('input', function(e) {
+            watermarkSettings.text = e.target.value;
+            if (watermarkEnabled) drawImage();
+        });
+
+        document.getElementById('watermarkSpacingX').addEventListener('input', function(e) {
+            watermarkSettings.spacingX = parseInt(e.target.value);
+            document.getElementById('spacingXValue').textContent = e.target.value + 'px';
+            if (watermarkEnabled) drawImage();
+        });
+
+        document.getElementById('watermarkSpacingY').addEventListener('input', function(e) {
+            watermarkSettings.spacingY = parseInt(e.target.value);
+            document.getElementById('spacingYValue').textContent = e.target.value + 'px';
+            if (watermarkEnabled) drawImage();
+        });
+
+        document.getElementById('watermarkOpacity').addEventListener('input', function(e) {
+            watermarkSettings.opacity = parseFloat(e.target.value);
+            document.getElementById('opacityValue').textContent = Math.round(e.target.value * 100) + '%';
+            if (watermarkEnabled) drawImage();
+        });
+
+        document.getElementById('watermarkRotation').addEventListener('input', function(e) {
+            watermarkSettings.rotation = parseInt(e.target.value);
+            document.getElementById('rotationValue').textContent = e.target.value + '°';
+            if (watermarkEnabled) drawImage();
+        });
+
+        document.getElementById('watermarkSize').addEventListener('input', function(e) {
+            watermarkSettings.size = parseInt(e.target.value);
+            document.getElementById('sizeValue').textContent = e.target.value + 'px';
+            if (watermarkEnabled) drawImage();
+        });
+
+        document.getElementById('watermarkColor').addEventListener('input', function(e) {
+            watermarkSettings.color = e.target.value;
+            if (watermarkEnabled) drawImage();
+        });
+
+        function drawImage() {
+            if (!currentImage) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            
+            // Draw watermark if enabled
+            if (watermarkEnabled) {
+                drawWatermark();
+            }
+            
+            // Draw text elements
+            textElements.forEach(textEl => {
+                ctx.font = `${textEl.fontSize}px ${textEl.fontFamily}`;
+                
+                // Vẽ khung viền nếu text đang được chọn hoặc di chuột qua
+                if (textEl === selectedTextElement || textEl === hoveredTextElement) {
+                    const metrics = ctx.measureText(textEl.text);
+                    const textWidth = metrics.width;
+                    const textHeight = textEl.fontSize;
+                    
+                    // Vẽ hình chữ nhật viền xung quanh text
+                    ctx.save();
+                    
+                    // Sử dụng màu khác nhau cho text đang được chọn và text đang hover
+                    if (textEl === selectedTextElement) {
+                        ctx.strokeStyle = '#10b981'; // Màu xanh lá cho text đang được chọn
+                        ctx.lineWidth = 2;
+                        // Thêm nền mờ cho text đang được chọn
+                        ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
+                        ctx.fillRect(
+                            textEl.x - 2, 
+                            textEl.y - textHeight - 2, 
+                            textWidth + 4, 
+                            textHeight + 4
+                        );
+                    } else {
+                        ctx.strokeStyle = '#3b82f6'; // Màu xanh dương cho text đang hover
+                        ctx.lineWidth = 1;
+                    }
+                    
+                    ctx.setLineDash([3, 3]);
+                    ctx.strokeRect(
+                        textEl.x - 2, 
+                        textEl.y - textHeight - 2, 
+                        textWidth + 4, 
+                        textHeight + 4
+                    );
+                    ctx.restore();
+                }
+                
+                // Vẽ text
+                ctx.fillStyle = textEl.color;
+                ctx.fillText(textEl.text, textEl.x, textEl.y);
+            });
+        }
+
+        function applyFilters() {
+            if (!originalImage) return;
+            
+            // Create temporary canvas for filtering
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = canvas.height;
+            
+            tempCtx.drawImage(originalImage, 0, 0, canvas.width, canvas.height);
+            
+            // Apply brightness and contrast
+            const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            const brightnessFactor = brightness / 100;
+            const contrastFactor = (contrast + 100) / 100;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                // Apply brightness
+                data[i] += brightnessFactor * 255;     // Red
+                data[i + 1] += brightnessFactor * 255; // Green
+                data[i + 2] += brightnessFactor * 255; // Blue
+                
+                // Apply contrast
+                data[i] = ((data[i] - 128) * contrastFactor) + 128;
+                data[i + 1] = ((data[i + 1] - 128) * contrastFactor) + 128;
+                data[i + 2] = ((data[i + 2] - 128) * contrastFactor) + 128;
+                
+                // Clamp values
+                data[i] = Math.max(0, Math.min(255, data[i]));
+                data[i + 1] = Math.max(0, Math.min(255, data[i + 1]));
+                data[i + 2] = Math.max(0, Math.min(255, data[i + 2]));
+            }
+            
+            tempCtx.putImageData(imageData, 0, 0);
+            
+            // Update current image
+            const filteredImg = new Image();
+            filteredImg.onload = function() {
+                currentImage = filteredImg;
+                drawImage();
+            };
+            filteredImg.src = tempCanvas.toDataURL();
+        }
+
+        function toggleCropMode() {
+            cropMode = !cropMode;
+            const cropTool = document.getElementById('cropTool');
+            const applyCrop = document.getElementById('applyCrop');
+            const cropOverlay = document.getElementById('cropOverlay');
+            
+            if (cropMode) {
+                cropTool.textContent = '❌ Hủy cắt';
+                applyCrop.style.display = 'block';
+                
+                // Hiển thị lưới bao trùm toàn bộ ảnh
+                cropStart = { x: 0, y: 0 };
+                cropEnd = { x: canvas.width, y: canvas.height };
+                
+                // Hiển thị overlay bao toàn bộ ảnh
+                cropOverlay.style.left = '0px';
+                cropOverlay.style.top = '0px';
+                cropOverlay.style.width = canvas.width + 'px';
+                cropOverlay.style.height = canvas.height + 'px';
+                cropOverlay.style.display = 'block';
+                cropOverlay.style.borderColor = '#3b82f6';
+                cropOverlay.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                
+                setupCropHandlers();
+                
+                // Update image info with instructions
+                const imageInfo = document.getElementById('imageInfo');
+                const origInfo = imageInfo.innerHTML;
+                imageInfo.innerHTML = origInfo + '<br><span style="color:#3b82f6">Di chuyển và kéo cạnh khung để điều chỉnh vùng cắt</span>';
+            } else {
+                cropTool.textContent = '✂️ Cắt ảnh';
+                applyCrop.style.display = 'none';
+                cropOverlay.style.display = 'none';
+                removeCropHandlers();
+                
+                // Reset crop data
+                cropStart = null;
+                cropEnd = null;
+                
+                // Update image info back to normal
+                if (currentImage) {
+                    updateImageInfo(canvas.width, canvas.height);
+                }
+            }
+        }
+
+        function setupCropHandlers() {
+            // Sử dụng document thay vì canvas để bắt sự kiện khi di chuột ra ngoài canvas
+            document.addEventListener('mousedown', startCrop);
+            document.addEventListener('mousemove', updateCrop);
+            document.addEventListener('mouseup', endCrop);
+            
+            // Thêm event listener cho việc di chuột trên overlay để hiển thị cursor phù hợp
+            const cropOverlay = document.getElementById('cropOverlay');
+            cropOverlay.addEventListener('mousemove', function(e) {
+                const rect = cropOverlay.getBoundingClientRect();
+                
+                // Tính toán khoảng cách đến các góc
+                const distances = [
+                    { dx: e.clientX - rect.left, dy: e.clientY - rect.top, cursor: 'nw-resize' },
+                    { dx: e.clientX - rect.right, dy: e.clientY - rect.top, cursor: 'ne-resize' },
+                    { dx: e.clientX - rect.left, dy: e.clientY - rect.bottom, cursor: 'sw-resize' },
+                    { dx: e.clientX - rect.right, dy: e.clientY - rect.bottom, cursor: 'se-resize' }
+                ];
+                
+                // Kiểm tra xem có đang di chuột gần góc nào không
+                for (const d of distances) {
+                    if (Math.abs(d.dx) <= 10 && Math.abs(d.dy) <= 10) {
+                        cropOverlay.style.cursor = d.cursor;
+                        return;
+                    }
+                }
+                
+                // Không ở gần góc nào thì hiển thị cursor move
+                cropOverlay.style.cursor = 'move';
+            });
+        }
+
+        function removeCropHandlers() {
+            document.removeEventListener('mousedown', startCrop);
+            document.removeEventListener('mousemove', updateCrop);
+            document.removeEventListener('mouseup', endCrop);
+            
+            // Reset cursor
+            const cropOverlay = document.getElementById('cropOverlay');
+            cropOverlay.style.cursor = 'default';
+        }
+
+        let isDraggingOverlay = false;
+        let resizingHandle = null;
+        let resizeStartX = 0;
+        let resizeStartY = 0;
+
+        function startCrop(e) {
+            if (!cropMode) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.max(0, Math.min(canvas.width, e.clientX - rect.left));
+            const y = Math.max(0, Math.min(canvas.height, e.clientY - rect.top));
+            
+            // Kiểm tra xem người dùng đang click vào tay cầm để resize hay không
+            const overlay = document.getElementById('cropOverlay');
+            const overlayRect = overlay.getBoundingClientRect();
+            
+            // Tính toán vị trí của các tay cầm resize
+            const handles = [
+                { x: overlayRect.left, y: overlayRect.top, cursor: 'nw-resize', corner: 'topleft' },
+                { x: overlayRect.right, y: overlayRect.top, cursor: 'ne-resize', corner: 'topright' },
+                { x: overlayRect.left, y: overlayRect.bottom, cursor: 'sw-resize', corner: 'bottomleft' },
+                { x: overlayRect.right, y: overlayRect.bottom, cursor: 'se-resize', corner: 'bottomright' }
+            ];
+            
+            // Kiểm tra xem đang click vào tay cầm nào
+            for (const handle of handles) {
+                if (Math.abs(e.clientX - handle.x) <= 10 && Math.abs(e.clientY - handle.y) <= 10) {
+                    resizingHandle = handle.corner;
+                    resizeStartX = x;
+                    resizeStartY = y;
+                    return;
+                }
+            }
+            
+            // Nếu không click vào tay cầm thì là đang di chuyển toàn bộ overlay
+            isDraggingOverlay = true;
+            dragOffset = {
+                x: x - parseInt(overlay.style.left),
+                y: y - parseInt(overlay.style.top)
+            };
+        }
+
+        function updateCrop(e) {
+            if (!cropMode) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.max(0, Math.min(canvas.width, e.clientX - rect.left));
+            const y = Math.max(0, Math.min(canvas.height, e.clientY - rect.top));
+            
+            const overlay = document.getElementById('cropOverlay');
+            
+            if (resizingHandle) {
+                // Đang thay đổi kích thước từ một trong các tay cầm
+                let left = parseInt(overlay.style.left);
+                let top = parseInt(overlay.style.top);
+                let width = parseInt(overlay.style.width);
+                let height = parseInt(overlay.style.height);
+                
+                switch (resizingHandle) {
+                    case 'topleft':
+                        width += (left - x);
+                        height += (top - y);
+                        left = x;
+                        top = y;
+                        break;
+                    case 'topright':
+                        width = x - left;
+                        height += (top - y);
+                        top = y;
+                        break;
+                    case 'bottomleft':
+                        width += (left - x);
+                        height = y - top;
+                        left = x;
+                        break;
+                    case 'bottomright':
+                        width = x - left;
+                        height = y - top;
+                        break;
+                }
+                
+                // Đảm bảo kích thước tối thiểu
+                width = Math.max(20, width);
+                height = Math.max(20, height);
+                
+                // Đảm bảo không vượt quá canvas
+                if (left < 0) {
+                    width += left;
+                    left = 0;
+                }
+                if (top < 0) {
+                    height += top;
+                    top = 0;
+                }
+                if (left + width > canvas.width) {
+                    width = canvas.width - left;
+                }
+                if (top + height > canvas.height) {
+                    height = canvas.height - top;
+                }
+                
+                // Cập nhật vị trí và kích thước overlay
+                overlay.style.left = left + 'px';
+                overlay.style.top = top + 'px';
+                overlay.style.width = width + 'px';
+                overlay.style.height = height + 'px';
+                
+                // Cập nhật cropStart và cropEnd
+                cropStart = { x: left, y: top };
+                cropEnd = { x: left + width, y: top + height };
+            }
+            else if (isDraggingOverlay) {
+                // Đang di chuyển toàn bộ overlay
+                let newLeft = x - dragOffset.x;
+                let newTop = y - dragOffset.y;
+                const width = parseInt(overlay.style.width);
+                const height = parseInt(overlay.style.height);
+                
+                // Kiểm tra không để overlay ra ngoài canvas
+                newLeft = Math.max(0, Math.min(canvas.width - width, newLeft));
+                newTop = Math.max(0, Math.min(canvas.height - height, newTop));
+                
+                overlay.style.left = newLeft + 'px';
+                overlay.style.top = newTop + 'px';
+                
+                // Cập nhật cropStart và cropEnd
+                cropStart = { x: newLeft, y: newTop };
+                cropEnd = { x: newLeft + width, y: newTop + height };
+            }
+        }
+
+        function endCrop(e) {
+            if (!cropMode) return;
+            
+            // Đặt lại trạng thái kéo và resize
+            isDraggingOverlay = false;
+            resizingHandle = null;
+            
+            // Đổi màu để xác nhận đã chọn xong
+            const overlay = document.getElementById('cropOverlay');
+            overlay.style.borderColor = '#10b981';
+            overlay.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+            
+            // Xóa thông báo cũ và thêm thông báo mới
+            const imageInfo = document.getElementById('imageInfo');
+            if (!imageInfo.innerHTML.includes('✓ Đã chọn vùng cắt')) {
+                imageInfo.innerHTML += '<br><span style="color:#10b981">✓ Đã chọn vùng cắt</span>';
+            }
+        }
+
+        function applyCrop() {
+            if (!cropStart || !cropEnd || !currentImage) {
+                alert('Vui lòng chọn vùng cắt trước! Nhấn giữ và kéo chuột để chọn vùng cắt.');
+                return;
+            }
+            
+            const x = Math.min(cropStart.x, cropEnd.x);
+            const y = Math.min(cropStart.y, cropEnd.y);
+            const width = Math.abs(cropEnd.x - cropStart.x);
+            const height = Math.abs(cropEnd.y - cropStart.y);
+            
+            if (width < 10 || height < 10) {
+                alert('Vùng cắt quá nhỏ! Vui lòng chọn vùng lớn hơn.');
+                return;
+            }
+            
+            // Create cropped image
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            
+            tempCtx.drawImage(canvas, x, y, width, height, 0, 0, width, height);
+            
+            // Update canvas size and image
+            canvas.width = width;
+            canvas.height = height;
+            
+            const croppedImg = new Image();
+            croppedImg.onload = function() {
+                originalImage = croppedImg;
+                currentImage = croppedImg;
+                drawImage();
+                updateImageInfo(width, height);
+                toggleCropMode(); // Exit crop mode
+            };
+            croppedImg.src = tempCanvas.toDataURL();
+        }
+
+        function addText() {
+            const text = prompt('Nhập văn bản:');
+            if (text) {
+                // Tăng bộ đếm text
+                textCounter++;
+                
+                // Tạo text ở giữa canvas
+                const textElement = {
+                    id: textCounter,  // Thêm id để dễ dàng nhận biết
+                    text: text,
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    fontSize: 24,
+                    fontFamily: 'Arial',
+                    color: '#ffffff'
+                };
+                
+                // Thêm text vào danh sách
+                textElements.push(textElement);
+                drawImage();
+                selectTextElement(textElement);
+                
+                // Hiển thị thông báo hướng dẫn kéo thả và số lượng text hiện tại
+                const imageInfo = document.getElementById('imageInfo');
+                if (!imageInfo.innerHTML.includes('Kéo và di chuyển')) {
+                    imageInfo.innerHTML += '<br><span style="color:#3b82f6">💡 Kéo và di chuyển văn bản đến vị trí mong muốn</span>';
+                    imageInfo.innerHTML += '<br><span style="color:#3b82f6">💡 Nhấp vào văn bản để chỉnh sửa</span>';
+                }
+                
+                // Hiển thị số lượng text hiện tại
+                imageInfo.innerHTML += `<br><span style="color:#fbbf24">📝 Đã thêm text #${textCounter}</span>`;
+            }
+        }
+
+        function selectTextElement(textEl) {
+            // Nếu đang có text được chọn và đó là text mới, hãy làm nổi bật hiệu ứng chuyển đổi
+            const isChangingSelection = selectedTextElement && selectedTextElement !== textEl;
+            
+            selectedTextElement = textEl;
+            
+            // Hiển thị controls và cập nhật giá trị
+            document.getElementById('textControls').style.display = 'block';
+            document.getElementById('textContent').value = textEl.text;
+            document.getElementById('fontSize').value = textEl.fontSize;
+            document.getElementById('fontSizeValue').textContent = textEl.fontSize + 'px';
+            document.getElementById('textColor').value = textEl.color;
+            document.getElementById('fontFamily').value = textEl.fontFamily;
+            
+            // Thêm hiệu ứng visual để người dùng biết text đã được chọn
+            if (isChangingSelection) {
+                // Làm sáng viền của controls để chỉ ra rằng đang chỉnh sửa một text mới
+                const controls = document.getElementById('textControls');
+                controls.style.transition = 'box-shadow 0.3s ease';
+                controls.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.5)';
+                
+                // Sau 1 giây, loại bỏ hiệu ứng
+                setTimeout(() => {
+                    controls.style.boxShadow = 'none';
+                }, 1000);
+            }
+        }
+
+        // Hàm cập nhật text theo thời gian thực
+        function liveUpdateText() {
+            if (!selectedTextElement) return;
+            
+            selectedTextElement.text = document.getElementById('textContent').value;
+            selectedTextElement.fontSize = parseInt(document.getElementById('fontSize').value);
+            selectedTextElement.color = document.getElementById('textColor').value;
+            selectedTextElement.fontFamily = document.getElementById('fontFamily').value;
+            
+            // Cập nhật hiển thị font size
+            document.getElementById('fontSizeValue').textContent = selectedTextElement.fontSize + 'px';
+            
+            drawImage();
+        }
+        
+        // Giữ lại hàm cũ để tương thích với các phần khác của code
+        function updateSelectedText() {
+            liveUpdateText();
+        }
+
+        function deleteSelectedText() {
+            if (!selectedTextElement) return;
+            
+            const index = textElements.indexOf(selectedTextElement);
+            if (index > -1) {
+                textElements.splice(index, 1);
+                selectedTextElement = null;
+                document.getElementById('textControls').style.display = 'none';
+                drawImage();
+            }
+        }
+        
+        function toggleWatermark() {
+            watermarkEnabled = !watermarkEnabled;
+            const toggleBtn = document.getElementById('watermarkToggle');
+            const controls = document.getElementById('watermarkControls');
+            
+            if (watermarkEnabled) {
+                controls.style.display = 'block';
+                toggleBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                toggleBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                toggleBtn.textContent = '💧 Tắt Watermark';
+            } else {
+                controls.style.display = 'none';
+                toggleBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                toggleBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                toggleBtn.textContent = '💧 Thêm Watermark';
+            }
+            
+            drawImage();
+        }
+
+        function downloadImage() {
+            if (!canvas) return;
+            
+            const link = document.createElement('a');
+            link.download = 'edited-image.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function resetImage() {
+            if (!originalImage) return;
+            
+            brightness = 0;
+            contrast = 0;
+            textElements = [];
+            selectedTextElement = null;
+            textCounter = 0; // Reset text counter
+            watermarkEnabled = false;
+            
+            document.getElementById('brightness').value = 0;
+            document.getElementById('contrast').value = 0;
+            document.getElementById('brightnessValue').textContent = '0%';
+            document.getElementById('contrastValue').textContent = '0%';
+            document.getElementById('textControls').style.display = 'none';
+            
+            // Reset watermark controls if they exist
+            const watermarkControls = document.getElementById('watermarkControls');
+            if (watermarkControls) {
+                watermarkControls.style.display = 'none';
+            }
+            
+            // Reset watermark toggle button if it exists
+            const watermarkToggle = document.getElementById('watermarkToggle');
+            if (watermarkToggle) {
+                watermarkToggle.classList.remove('bg-green-600', 'hover:bg-green-700');
+                watermarkToggle.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                watermarkToggle.textContent = '💧 Thêm Watermark';
+            }
+            
+            currentImage = originalImage;
+            drawImage();
+        }
+
+        function resetControls() {
+            brightness = 0;
+            contrast = 0;
+            textElements = [];
+            selectedTextElement = null;
+            
+            document.getElementById('brightness').value = 0;
+            document.getElementById('contrast').value = 0;
+            document.getElementById('brightnessValue').textContent = '0%';
+            document.getElementById('contrastValue').textContent = '0%';
+            document.getElementById('textControls').style.display = 'none';
+        }
+
+        function updateImageInfo(width, height) {
+            document.getElementById('imageInfo').innerHTML = `
+                Kích thước: ${Math.round(width)} x ${Math.round(height)}px<br>
+                Tỉ lệ: ${(width/height).toFixed(2)}:1
+            `;
+        }
+
+        function drawWatermark() {
+            ctx.save();
+            
+            // Set watermark style
+            ctx.font = `${watermarkSettings.size}px Arial`;
+            ctx.fillStyle = watermarkSettings.color;
+            ctx.globalAlpha = watermarkSettings.opacity;
+            
+            // Calculate grid positions
+            const spacingX = watermarkSettings.spacingX;
+            const spacingY = watermarkSettings.spacingY;
+            const rotation = (watermarkSettings.rotation * Math.PI) / 180;
+            
+            // Draw watermark grid
+            for (let y = -spacingY; y < canvas.height + spacingY; y += spacingY) {
+                for (let x = -spacingX; x < canvas.width + spacingX; x += spacingX) {
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(rotation);
+                    ctx.fillText(watermarkSettings.text, 0, 0);
+                    ctx.restore();
+                }
+            }
+            
+            ctx.restore();
+        }
+
+        // Text drag variables
+        let isDraggingText = false;
+        let draggedTextElement = null;
+        let textDragOffset = { x: 0, y: 0 };
+
+        // Canvas mouse handlers for text interaction
+        canvas.addEventListener('mousedown', function(e) {
+            if (cropMode) return; // Don't handle text when in crop mode
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            let foundText = false;
+            
+            // Check if clicked on any text element
+            for (let i = textElements.length - 1; i >= 0; i--) {
+                const textEl = textElements[i];
+                ctx.font = `${textEl.fontSize}px ${textEl.fontFamily}`;
+                const metrics = ctx.measureText(textEl.text);
+                
+                if (x >= textEl.x && x <= textEl.x + metrics.width &&
+                    y >= textEl.y - textEl.fontSize && y <= textEl.y) {
+                    
+                    foundText = true;
+                    
+                    // Start dragging text
+                    isDraggingText = true;
+                    draggedTextElement = textEl;
+                    textDragOffset = {
+                        x: x - textEl.x,
+                        y: y - textEl.y
+                    };
+                    
+                    // Select the text element for editing
+                    selectTextElement(textEl);
+                    canvas.style.cursor = 'move';
+                    
+                    // Hiển thị thông báo đã chọn text
+                    const imageInfo = document.getElementById('imageInfo');
+                    if (imageInfo.innerHTML.includes('Đã chọn văn bản')) {
+                        // Cập nhật thông báo
+                        imageInfo.innerHTML = imageInfo.innerHTML.replace(
+                            /<span style="color:#10b981">.*?<\/span>/,
+                            `<span style="color:#10b981">✓ Đã chọn văn bản: "${textEl.text.substring(0, 15)}${textEl.text.length > 15 ? '...' : ''}"</span>`
+                        );
+                    } else {
+                        // Thêm thông báo mới
+                        imageInfo.innerHTML += `<br><span style="color:#10b981">✓ Đã chọn văn bản: "${textEl.text.substring(0, 15)}${textEl.text.length > 15 ? '...' : ''}"</span>`;
+                    }
+                    
+                    // Redraw để hiển thị hiệu ứng chọn
+                    drawImage();
+                    break;
+                }
+            }
+            
+            // If no text clicked, hide text controls
+            if (!foundText) {
+                selectedTextElement = null;
+                document.getElementById('textControls').style.display = 'none';
+                drawImage(); // Redraw to remove selection highlight
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(e) {
+            if (cropMode) return; // Don't handle text when in crop mode
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // If dragging text, update its position
+            if (isDraggingText && draggedTextElement) {
+                draggedTextElement.x = x - textDragOffset.x;
+                draggedTextElement.y = y - textDragOffset.y;
+                drawImage(); // Redraw to show text in new position
+            } else {
+                // If not dragging, check if hovering over any text and update cursor
+                let foundHoveredText = false;
+                hoveredTextElement = null; // Reset hovered text
+                
+                for (let i = textElements.length - 1; i >= 0; i--) {
+                    const textEl = textElements[i];
+                    ctx.font = `${textEl.fontSize}px ${textEl.fontFamily}`;
+                    const metrics = ctx.measureText(textEl.text);
+                    
+                    if (x >= textEl.x && x <= textEl.x + metrics.width &&
+                        y >= textEl.y - textEl.fontSize && y <= textEl.y) {
+                        foundHoveredText = true;
+                        hoveredTextElement = textEl;
+                        canvas.style.cursor = 'move';
+                        break;
+                    }
+                }
+                
+                if (!foundHoveredText) {
+                    canvas.style.cursor = 'default';
+                }
+                
+                // Redraw to update visual hover effect
+                drawImage();
+            }
+        });
+
+        canvas.addEventListener('mouseup', function(e) {
+            // End text dragging
+            isDraggingText = false;
+            draggedTextElement = null;
+            canvas.style.cursor = 'default';
+        });
+
+        // Handle case when mouse leaves canvas while dragging
+        canvas.addEventListener('mouseleave', function(e) {
+            isDraggingText = false;
+            draggedTextElement = null;
+            canvas.style.cursor = 'default';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'968244aba07ce2f8',t:'MTc1NDAxOTE0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
