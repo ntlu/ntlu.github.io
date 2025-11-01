@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Maze Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            text-align: center;
+            padding: 20px;
+        }
+        .maze-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.player-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+        canvas {
+            border: 2px solid #333;
+            background: white;
+        }
+        #winnerModal {
+            display: none;
+            position: fixed;
+            top: 40%;
+            left: 40%;
+            background: white;
+            padding: 20px;
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        }
+        .player-controls {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Maze Game</h2>
+    <div>
+        <label for="playerCount">Số người chơi:</label>
+        <select id="playerCount">
+            <option value="1">1 người chơi</option>
+            <option value="2">2 người chơi</option>
+            <option value="3">3 người chơi</option>
+        </select>
+
+        <label for="difficulty">Độ khó:</label>
+        <select id="difficulty">
+            <option value="easy">Dễ</option>
+            <option value="medium">Trung bình</option>
+            <option value="hard">Khó</option>
+        </select>
+        <button onclick="startGame()">Bắt đầu</button>
+    </div>
+
+    <div id="scores"></div>
+    <div class="maze-container" id="mazeContainer"></div>
+
+    <!-- Modal thông báo chiến thắng -->
+    <div id="winnerModal">
+        <p id="winnerText"></p>
+        <button onclick="nextLevel()">Tiếp tục</button>
+    </div>
+
+    <script>
+        let cellSize = 20;
+        const baseCellSize = 20;
+        const minCellSize = 5;
+        let players = [];
+        let maze = [];
+        let start, end;
+        let cols, rows;
+        let difficulty = 'easy';
+        let playerCount = 1;
+
+        function startGame() {
+            document.getElementById("mazeContainer").innerHTML = '';
+            document.getElementById("scores").innerHTML = '';
+            players = [];
+
+            playerCount = parseInt(document.getElementById("playerCount").value);
+            difficulty = document.getElementById("difficulty").value;
+
+            const difficultyFactor = difficulty === 'easy' ? 1 : difficulty === 'medium' ? 2 : 3;
+            cellSize = Math.max(minCellSize, Math.floor(baseCellSize / difficultyFactor)); // Đảm bảo nguyên
+
+            cols = Math.floor(500 / cellSize);
+            rows = Math.floor(500 / cellSize);
+
+            generateMaze();
+
+            for (let i = 0; i < playerCount; i++) {
+    const wrapper = document.createElement("div");
+    wrapper.classList.add("player-wrapper");
+
+    const controlDiv = document.createElement("div");
+    controlDiv.classList.add("player-controls");
+    controlDiv.innerHTML = `Player ${i + 1} Controls: `;
+
+    if (i === 0) controlDiv.innerHTML += "WASD (Arrow keys)";
+    else if (i === 1) controlDiv.innerHTML += "IJKL";
+    else if (i === 2) controlDiv.innerHTML += "Arrow keys";
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 500;
+    canvas.height = 500;
+    canvas.style.border = '2px solid #333';
+    canvas.id = 'canvas' + i;
+
+    wrapper.appendChild(controlDiv);
+    wrapper.appendChild(canvas);
+    document.getElementById("mazeContainer").appendChild(wrapper);
+
+    const ctx = canvas.getContext("2d");
+
+    const p = {
+        x: start.x * cellSize,
+        y: start.y * cellSize,
+        ctx: ctx,
+        level: 1,
+        id: i + 1,
+        color: ['green', 'blue', 'purple', 'orange', 'cyan'][i % 5]
+    };
+    players.push(p);
+
+    const score = document.createElement("div");
+    score.id = "score" + i;
+    score.innerText = `Player ${i + 1} Level: 1`;
+    document.getElementById("scores").appendChild(score);
+
+    drawMaze(ctx, p);
+}
+        }
+
+        function generateMaze() {
+            maze = Array(rows).fill().map(() => Array(cols).fill(1));
+
+            function carve(x, y) {
+                maze[y][x] = 0;
+                const dirs = [[0, -2], [2, 0], [0, 2], [-2, 0]].sort(() => Math.random() - 0.5);
+                for (let [dx, dy] of dirs) {
+                    let nx = x + dx, ny = y + dy;
+                    if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && maze[ny][nx] === 1) {
+                        maze[y + dy / 2][x + dx / 2] = 0;
+                        carve(nx, ny);
+                    }
+                }
+            }
+
+            // Tạo vị trí bắt đầu và kết thúc ngẫu nhiên, luôn là số lẻ để hợp lệ trong maze
+            start = { x: Math.floor(Math.random() * (cols / 2)) * 2 + 1, y: Math.floor(Math.random() * (rows / 2)) * 2 + 1 };
+            end = { x: Math.floor(Math.random() * (cols / 2)) * 2 + 1, y: Math.floor(Math.random() * (rows / 2)) * 2 + 1 };
+
+            carve(start.x, start.y);
+            maze[end.y][end.x] = 0;
+        }
+
+        function drawMaze(ctx, player) {
+            ctx.clearRect(0, 0, 500, 500);
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    if (maze[y][x] === 1) {
+                        ctx.fillStyle = '#333';
+                        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    }
+                }
+            }
+
+            ctx.beginPath();
+            ctx.fillStyle = player.color;
+            ctx.arc(player.x + cellSize / 2, player.y + cellSize / 2, cellSize / 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = 'red';
+            ctx.fillRect(end.x * cellSize, end.y * cellSize, cellSize, cellSize);
+        }
+
+        function move(player, dx, dy) {
+            const newX = player.x + dx;
+            const newY = player.y + dy;
+            const cellX = Math.floor(newX / cellSize);
+            const cellY = Math.floor(newY / cellSize);
+
+            if (cellX >= 0 && cellX < cols && cellY >= 0 && cellY < rows && maze[cellY][cellX] === 0) {
+                player.x = newX;
+                player.y = newY;
+
+                if (cellX === end.x && cellY === end.y) {
+                    if (playerCount > 1) {
+                        document.getElementById("winnerText").innerText = `🎉 Người chơi ${player.id} chiến thắng!`;
+                        document.getElementById("winnerModal").style.display = 'block';
+                    } else {
+                        nextLevel();
+                    }
+                }
+            }
+
+            players.forEach(p => drawMaze(p.ctx, p));
+        }
+
+        function nextLevel() {
+            players.forEach(p => {
+                p.level++;
+                document.getElementById("score" + (p.id - 1)).innerText = `Player ${p.id} Level: ${p.level}`;
+                p.x = start.x * cellSize;
+                p.y = start.y * cellSize;
+            });
+            generateMaze();
+            document.getElementById("winnerModal").style.display = 'none';
+            players.forEach(p => drawMaze(p.ctx, p));
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const controls = {
+                // Player 1 - WASD (was: Arrow keys)
+                'w': [0, 0, -cellSize],
+                's': [0, 0, cellSize],
+                'a': [0, -cellSize, 0],
+                'd': [0, cellSize, 0],
+                // Player 2 - IJKL (giữ nguyên)
+                'i': [1, 0, -cellSize],
+                'k': [1, 0, cellSize],
+                'j': [1, -cellSize, 0],
+                'l': [1, cellSize, 0],
+                // Player 3 - Arrow keys (was: WASD)
+                'ArrowUp': [2, 0, -cellSize],
+                'ArrowDown': [2, 0, cellSize],
+                'ArrowLeft': [2, -cellSize, 0],
+                'ArrowRight': [2, cellSize, 0]
+            };
+
+            const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+            const moveData = controls[key];
+            if (moveData && moveData[0] < players.length) {
+                move(players[moveData[0]], moveData[1], moveData[2]);
+            }
+        });
+    </script>
+</body>
+</html>

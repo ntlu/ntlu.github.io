@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ghép Số Vui Nhộn!</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: #fce4ec;
+      text-align: center;
+      padding: 20px;
+      color: #333;
+    }
+
+    h1 {
+      color: #e91e63;
+    }
+
+    #timer, #shuffle-button {
+      font-size: 20px;
+      margin: 10px;
+    }
+
+    #shuffle-button {
+      padding: 10px 20px;
+      background-color: #ff80ab;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #shuffle-button:hover {
+      background-color: #ec407a;
+    }
+
+    #puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      grid-gap: 10px;
+      justify-content: center;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #fff0f5;
+      border-radius: 15px;
+      max-width: 360px;
+    }
+
+    .puzzle-tile {
+      width: 80px;
+      height: 80px;
+      background-color: #f8bbd0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .puzzle-tile:hover {
+      transform: scale(1.05);
+      background-color: #f48fb1;
+    }
+
+    .empty {
+      background-color: transparent;
+      cursor: default;
+    }
+
+    #leaderboard {
+      margin-top: 20px;
+    }
+
+    #top-scores li {
+      font-size: 18px;
+      color: #6a1b9a;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎉 Ghép Số Vui Nhộn! 🎉</h1>
+  <div id="timer">⏱ Thời gian: 00:00</div>
+  <button id="shuffle-button">Bắt đầu / Trộn</button>
+  <div id="puzzle-container"></div>
+  <div id="leaderboard">
+    <h2>🏆 Bảng xếp hạng</h2>
+    <ol id="top-scores"></ol>
+  </div>
+
+  <script>
+    const puzzleContainer = document.getElementById("puzzle-container");
+    const timerDisplay = document.getElementById("timer");
+    const shuffleButton = document.getElementById("shuffle-button");
+    const topScoresList = document.getElementById("top-scores");
+
+    const gridSize = 4;
+    let numbers = [];
+    let emptyTile = null;
+    let moves = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let gameStarted = false;
+    let topScores = [];
+
+    function init() {
+      loadScores();
+      generateInitialNumbers();
+      createPuzzleBoard();
+    }
+
+    function generateInitialNumbers() {
+      numbers = [];
+      for (let i = 1; i < gridSize * gridSize; i++) {
+        numbers.push(i);
+      }
+      numbers.push(null);
+      emptyTile = numbers.length - 1;
+    }
+
+    function createPuzzleBoard() {
+      puzzleContainer.innerHTML = "";
+      puzzleContainer.style.gridTemplateColumns = `repeat(${gridSize}, 80px)`;
+      numbers.forEach((num, index) => {
+        const tile = document.createElement("div");
+        tile.classList.add("puzzle-tile");
+        if (num === null) {
+          tile.classList.add("empty");
+        } else {
+          tile.innerText = num;
+          tile.addEventListener("click", () => moveTile(index));
+        }
+        puzzleContainer.appendChild(tile);
+      });
+    }
+
+    function shuffleNumbers() {
+      do {
+        numbers = [...Array(gridSize * gridSize - 1).keys()].map(x => x + 1);
+        numbers.push(null);
+        for (let i = numbers.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+        }
+      } while (!isSolvable(numbers));
+      emptyTile = numbers.indexOf(null);
+      createPuzzleBoard();
+      startGame();
+    }
+
+    function isSolvable(arr) {
+      let invCount = 0;
+      const flat = arr.filter(n => n !== null);
+      for (let i = 0; i < flat.length - 1; i++) {
+        for (let j = i + 1; j < flat.length; j++) {
+          if (flat[i] > flat[j]) invCount++;
+        }
+      }
+      const rowFromBottom = gridSize - Math.floor(arr.indexOf(null) / gridSize);
+      if (gridSize % 2 === 0) {
+        return (invCount + rowFromBottom) % 2 === 0;
+      }
+      return invCount % 2 === 0;
+    }
+
+    function moveTile(index) {
+      const targetRow = Math.floor(index / gridSize);
+      const targetCol = index % gridSize;
+      const emptyRow = Math.floor(emptyTile / gridSize);
+      const emptyCol = emptyTile % gridSize;
+
+      if (
+        (Math.abs(targetRow - emptyRow) === 1 && targetCol === emptyCol) ||
+        (Math.abs(targetCol - emptyCol) === 1 && targetRow === emptyRow)
+      ) {
+        [numbers[index], numbers[emptyTile]] = [numbers[emptyTile], numbers[index]];
+        emptyTile = index;
+        moves++;
+        createPuzzleBoard();
+        if (isPuzzleSolved()) {
+          stopGame();
+        }
+      }
+    }
+
+    function isPuzzleSolved() {
+      for (let i = 0; i < numbers.length - 1; i++) {
+        if (numbers[i] !== i + 1) return false;
+      }
+      return true;
+    }
+
+    function formatTime(seconds) {
+      const m = String(Math.floor(seconds / 60)).padStart(2, "0");
+      const s = String(seconds % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function updateTimer() {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      timerDisplay.textContent = `⏱ Thời gian: ${formatTime(elapsed)}`;
+    }
+
+    function startGame() {
+      clearInterval(timerInterval);
+      startTime = Date.now();
+      timerInterval = setInterval(updateTimer, 1000);
+      moves = 0;
+      gameStarted = true;
+    }
+
+    function stopGame() {
+      clearInterval(timerInterval);
+      gameStarted = false;
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      alert(`🎉 Hoàn thành sau ${formatTime(elapsedTime)} với ${moves} bước!`);
+      saveScore(elapsedTime);
+    }
+
+    function saveScore(time) {
+      topScores.push({ time, moves });
+      topScores.sort((a, b) => a.time - b.time);
+      topScores = topScores.slice(0, 10);
+      localStorage.setItem("topScores", JSON.stringify(topScores));
+      displayTopScores();
+    }
+
+    function loadScores() {
+      const saved = localStorage.getItem("topScores");
+      if (saved) {
+        topScores = JSON.parse(saved);
+      }
+      displayTopScores();
+    }
+
+    function displayTopScores() {
+      topScoresList.innerHTML = "";
+      topScores.forEach((score, index) => {
+        const li = document.createElement("li");
+        li.textContent = `${index + 1}. ⏱ ${formatTime(score.time)} - 🚶‍♂️ ${score.moves} bước`;
+        topScoresList.appendChild(li);
+      });
+    }
+
+    shuffleButton.addEventListener("click", () => {
+      if (gameStarted && !confirm("Bạn có chắc muốn chơi lại không?")) return;
+      shuffleNumbers();
+    });
+
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>
