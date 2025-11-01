@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rắn Săn Mồi - 3 Người Chơi</title>
+  <style>
+    body {
+      background-color: rgb(34, 124, 151);
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+    #modeSelection {
+      margin-bottom: 20px;
+    }
+    canvas {
+      border: 2px solid black;
+      margin: 10px;
+      background-color: white;
+    }
+    .score {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: darkgreen;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    #gameArea {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 40px;
+    }
+    .playerArea {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #restartBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: darkgreen;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #restartBtn:hover {
+      background-color: rgb(55, 20, 252);
+    }
+  </style>
+</head>
+<body>
+  <div id="modeSelection">
+    <label for="mode">Chọn chế độ chơi:</label>
+    <select id="mode">
+      <option value="1">1 Người Chơi</option>
+      <option value="2">2 Người Chơi</option>
+      <option value="3">3 Người Chơi</option>
+    </select>
+    <button onclick="startGame()">Bắt đầu</button>
+  </div>
+
+  <div id="gameArea" style="display:none;">
+    <div id="player1Area" class="playerArea">
+      <div class="score" id="score1">Điểm Người 1 (WASD): 0</div>
+      <canvas id="canvas1" width="500" height="500"></canvas>
+    </div>
+    <div id="player3Area" class="playerArea" style="display:none;">
+      <div class="score" id="score3">Điểm Người 3 (IJKL): 0</div>
+      <canvas id="canvas3" width="500" height="500"></canvas>
+    </div>
+    <div id="player2Area" class="playerArea" style="display:none;">
+      <div class="score" id="score2">Điểm Người 2 (Phím mũi tên): 0</div>
+      <canvas id="canvas2" width="500" height="500"></canvas>
+    </div>
+  </div>
+
+  <button id="restartBtn" style="display:none;" onclick="location.reload()">Chơi lại</button>
+
+  <script>
+    const gridSize = 20;
+    const players = [];
+
+    function startGame() {
+      const mode = parseInt(document.getElementById('mode').value);
+      document.getElementById('modeSelection').style.display = 'none';
+      document.getElementById('gameArea').style.display = 'flex';
+      document.getElementById('restartBtn').style.display = 'block';
+
+      if (mode >= 1) {
+        setupPlayer('canvas1', 'score1', mode === 1 ? 'arrows' : 'wasd');
+      }
+      if (mode >= 2) {
+        document.getElementById('player2Area').style.display = 'flex';
+        setupPlayer('canvas2', 'score2', 'arrows');
+      }
+      if (mode === 3) {
+        document.getElementById('player3Area').style.display = 'flex';
+        setupPlayer('canvas3', 'score3', 'ijkl');
+      }
+    }
+
+    function setupPlayer(canvasId, scoreId, controlScheme) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const startX = Math.floor(canvas.width / (2 * gridSize)) * gridSize;
+      const startY = Math.floor(canvas.height / (2 * gridSize)) * gridSize;
+
+      const player = {
+        canvas, ctx, scoreId,
+        snake: [
+          { x: startX, y: startY },
+          { x: startX - gridSize, y: startY },
+          { x: startX - 2 * gridSize, y: startY }
+        ],
+        direction: { x: 1, y: 0 },
+        food: generateFood(canvas),
+        score: 0,
+        speed: 100,
+        interval: null,
+        controlScheme,
+        alive: true
+      };
+
+      player.interval = setInterval(() => gameLoop(player), player.speed);
+      players.push(player);
+    }
+
+    function generateFood(canvas) {
+      return {
+        x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
+        y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize
+      };
+    }
+
+    function getSnakeColor(player, isHead = false) {
+      const scheme = player.controlScheme;
+      if (isHead) return 'red';
+      if (scheme === 'wasd') return '#638ed4';
+      if (scheme === 'arrows') return '#fbbc04';
+      if (scheme === 'ijkl') return 'purple';
+      return 'gray';
+    }
+
+    function draw(ctx, snake, food, alive, player) {
+      ctx.clearRect(0, 0, 500, 500);
+
+      if (!alive) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, 0, 500, 500);
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 40px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('DEAD', 250, 250);
+        return;
+      }
+
+      ctx.fillStyle = getSnakeColor(player, true); // đầu rắn luôn đỏ
+      ctx.fillRect(snake[0].x, snake[0].y, gridSize, gridSize);
+
+      ctx.fillStyle = getSnakeColor(player, false);
+      for (let i = 1; i < snake.length; i++) {
+        ctx.fillRect(snake[i].x, snake[i].y, gridSize, gridSize);
+      }
+
+      ctx.fillStyle = 'green';
+      ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    }
+
+    function updateSnake(player) {
+      const head = { ...player.snake[0] };
+      head.x += player.direction.x * gridSize;
+      head.y += player.direction.y * gridSize;
+      player.snake.unshift(head);
+
+      if (head.x === player.food.x && head.y === player.food.y) {
+        player.score++;
+        document.getElementById(player.scoreId).innerText =
+          `Điểm Người ${player.scoreId.at(-1)}: ${player.score}`;
+        player.food = generateFood(player.canvas);
+      } else {
+        player.snake.pop();
+      }
+    }
+
+    function checkCollision(player) {
+      const head = player.snake[0];
+      if (
+        head.x < 0 || head.x >= player.canvas.width ||
+        head.y < 0 || head.y >= player.canvas.height ||
+        player.snake.slice(1).some(s => s.x === head.x && s.y === head.y)
+      ) {
+        clearInterval(player.interval);
+        player.alive = false;
+        checkAllDead();
+      }
+    }
+
+    function gameLoop(player) {
+      if (!player.alive) {
+        draw(player.ctx, player.snake, player.food, false, player);
+        return;
+      }
+      updateSnake(player);
+      checkCollision(player);
+      draw(player.ctx, player.snake, player.food, true, player);
+    }
+
+    function checkAllDead() {
+      if (players.every(p => !p.alive)) {
+        let summary = '--- KẾT QUẢ ---\n';
+        players.forEach(p => {
+          summary += `Người ${p.scoreId.at(-1)}: ${p.score} điểm\n`;
+        });
+        setTimeout(() => alert(summary), 500);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toLowerCase();
+      players.forEach(p => {
+        const keys = p.controlScheme === 'wasd'
+          ? { w: { x: 0, y: -1 }, s: { x: 0, y: 1 }, a: { x: -1, y: 0 }, d: { x: 1, y: 0 } }
+          : p.controlScheme === 'ijkl'
+          ? { i: { x: 0, y: -1 }, k: { x: 0, y: 1 }, j: { x: -1, y: 0 }, l: { x: 1, y: 0 } }
+          : { arrowup: { x: 0, y: -1 }, arrowdown: { x: 0, y: 1 }, arrowleft: { x: -1, y: 0 }, arrowright: { x: 1, y: 0 } };
+
+        const newDir = keys[key];
+        if (newDir && (newDir.x !== -p.direction.x || newDir.y !== -p.direction.y)) {
+          p.direction = newDir;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Né Chướng Ngại Vật</title>
+  <style>
+    body {
+      background-color: #222;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    canvas {
+      border: 3px solid #fff;
+      background-color: #111;
+      display: block;
+      margin: 20px auto;
+    }
+
+    .controls {
+      margin-bottom: 10px;
+    }
+
+    select, button, input[type="color"] {
+      font-size: 16px;
+      padding: 5px 10px;
+      margin: 5px;
+    }
+
+    .scores {
+      margin-top: 10px;
+    }
+
+    label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Trò chơi Né Chướng Ngại Vật</h1>
+
+  <div class="controls">
+    <label>Chế độ chơi:
+      <select id="modeSelect">
+        <option value="1">1 Người chơi</option>
+        <option value="2">2 Người chơi</option>
+        <option value="3">3 Người chơi</option>
+      </select>
+    </label>
+
+    <label>Độ khó:
+      <select id="difficultySelect">
+        <option value="easy">Dễ</option>
+        <option value="medium" selected>Trung bình</option>
+        <option value="hard">Khó</option>
+        <option value="extreme">Siêu khó</option>
+      </select>
+    </label>
+
+    <div id="colorPickers"></div>
+
+    <button id="startBtn">Bắt đầu</button>
+  </div>
+
+  <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+  <div class="scores">
+    <p id="score1">Người chơi 1: 0</p>
+    <p id="score2" style="display:none">Người chơi 2: 0</p>
+    <p id="score3" style="display:none">Người chơi 3: 0</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const modeSelect = document.getElementById("modeSelect");
+    const difficultySelect = document.getElementById("difficultySelect");
+    const startBtn = document.getElementById("startBtn");
+    const scoreEls = [
+      document.getElementById("score1"),
+      document.getElementById("score2"),
+      document.getElementById("score3")
+    ];
+    const colorPickersContainer = document.getElementById("colorPickers");
+
+    let gameWidth = canvas.width;
+    let gameHeight = canvas.height;
+    let playerSize = 30;
+    let playerSpeed = 5;
+    let obstacleSize = 30;
+    let obstacleSpeed = 2;
+
+    let players = [];
+    let obstacles = [];
+    let scores = [];
+    let isGameOver = false;
+    let gameInterval;
+    let createObstacleInterval;
+    let keysPressed = {};
+    let currentDifficulty = "medium";
+
+    const playerKeys = [
+      { left: "ArrowLeft", right: "ArrowRight" },
+      { left: "a", right: "d" },
+      { left: "j", right: "l" }
+    ];
+
+    const defaultColors = ["red", "lime", "yellow"];
+    const difficultyMultipliers = {
+      easy: 1.05,
+      medium: 1.15,
+      hard: 1.3,
+      extreme: 1.5
+    };
+
+    function updateColorPickers() {
+      const playerCount = parseInt(modeSelect.value);
+      colorPickersContainer.innerHTML = "";
+      for (let i = 0; i < playerCount; i++) {
+        const label = document.createElement("label");
+        label.textContent = `Màu người chơi ${i + 1}: `;
+        const input = document.createElement("input");
+        input.type = "color";
+        input.className = "playerColor";
+        input.value = defaultColors[i];
+        label.appendChild(input);
+        colorPickersContainer.appendChild(label);
+      }
+    }
+
+    function resetGame(playerCount) {
+      clearInterval(gameInterval);
+      clearInterval(createObstacleInterval);
+      isGameOver = false;
+      obstacles = [];
+      scores = new Array(playerCount).fill(0);
+      players = [];
+      keysPressed = {};
+
+      currentDifficulty = difficultySelect.value;
+
+      const colorInputs = document.querySelectorAll(".playerColor");
+      for (let i = 0; i < playerCount; i++) {
+        players.push({
+          x: gameWidth / (playerCount + 1) * (i + 1) - playerSize / 2,
+          y: gameHeight - playerSize - 10,
+          color: colorInputs[i]?.value || defaultColors[i],
+          leftKey: playerKeys[i].left,
+          rightKey: playerKeys[i].right
+        });
+        scoreEls[i].style.display = "block";
+      }
+
+      for (let i = playerCount; i < 3; i++) {
+        scoreEls[i].style.display = "none";
+      }
+
+      document.addEventListener("keydown", (e) => {
+        keysPressed[e.key] = true;
+      });
+
+      document.addEventListener("keyup", (e) => {
+        keysPressed[e.key] = false;
+      });
+
+      startLoop();
+    }
+
+    function startLoop() {
+      obstacleSpeed = 2;
+      gameInterval = setInterval(updateGame, 1000 / 60);
+      createObstacleInterval = setInterval(createObstacle, 500);
+    }
+
+    function createObstacle() {
+      const x = Math.random() * (gameWidth - obstacleSize);
+      const color = ["#0ff", "#f0f", "#ff0"][Math.floor(Math.random() * 3)];
+      obstacles.push({ x, y: -obstacleSize, color });
+    }
+
+    function updateGame() {
+      if (isGameOver) return;
+
+      players.forEach(player => {
+        if (keysPressed[player.leftKey] && player.x > 0) {
+          player.x -= playerSpeed;
+        }
+        if (keysPressed[player.rightKey] && player.x + playerSize < gameWidth) {
+          player.x += playerSpeed;
+        }
+      });
+
+      obstacles.forEach(ob => ob.y += obstacleSpeed);
+
+      obstacles.forEach(ob => {
+        players.forEach((player, index) => {
+          if (
+            ob.y + obstacleSize > player.y &&
+            ob.y < player.y + playerSize &&
+            ob.x + obstacleSize > player.x &&
+            ob.x < player.x + playerSize
+          ) {
+            gameOver();
+          }
+        });
+      });
+
+      obstacles = obstacles.filter(ob => {
+        if (ob.y > gameHeight) {
+          scores.forEach((score, i) => {
+            scores[i] += 1;
+            if (scores[i] % 20 === 0) {
+              obstacleSpeed *= difficultyMultipliers[currentDifficulty];
+            }
+          });
+          return false;
+        }
+        return true;
+      });
+
+      drawGame();
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, gameWidth, gameHeight);
+
+      players.forEach(player => {
+        ctx.fillStyle = player.color;
+        ctx.fillRect(player.x, player.y, playerSize, playerSize);
+      });
+
+      obstacles.forEach(ob => {
+        ctx.fillStyle = ob.color;
+        ctx.fillRect(ob.x, ob.y, obstacleSize, obstacleSize);
+      });
+
+      scores.forEach((s, i) => {
+        scoreEls[i].innerText = `Người chơi ${i + 1}: ${s}`;
+      });
+    }
+
+    function gameOver() {
+      isGameOver = true;
+      clearInterval(gameInterval);
+      clearInterval(createObstacleInterval);
+      alert("Trò chơi kết thúc!");
+    }
+
+    startBtn.addEventListener("click", () => {
+      const mode = parseInt(modeSelect.value);
+      resetGame(mode);
+    });
+
+    modeSelect.addEventListener("change", updateColorPickers);
+    updateColorPickers(); // gọi lúc đầu để hiển thị picker
+  </script>
+</body>
+</html>
