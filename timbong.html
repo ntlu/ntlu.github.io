@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò chơi 3 Cốc & Quả Bóng</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #FF6B6B;
+      --secondary-color: #4ECDC4;
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      --cup-color: #f7d794;
+      --cup-shadow: #e1b12c;
+      --ball-color: #ff4757;
+      --text-color: #ffffff;
+      --glass-bg: rgba(255, 255, 255, 0.1);
+      --glass-border: rgba(255, 255, 255, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .game-container {
+      width: 100%;
+      max-width: 600px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      text-align: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      padding: 15px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .stats-bar {
+      display: flex;
+      justify-content: space-around;
+      font-size: 1.1rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-item .label {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    .stat-item .value {
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+
+    .game-area {
+      position: relative;
+      height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .cups-container {
+      display: flex;
+      justify-content: center;
+      gap: 50px;
+      width: 100%;
+      height: 200px;
+      position: relative;
+      /* For absolute positioning of cups during shuffle if needed, but we use transform */
+    }
+
+    .cup-wrapper {
+      position: relative;
+      /* Changed to relative for flex layout, but we will use transform for movement */
+      width: 150px;
+      height: 200px;
+      cursor: pointer;
+      transition: transform 0.1s linear;
+      /* Dynamic duration set by JS */
+      z-index: 10;
+    }
+
+    /* Cup Styling */
+    .cup {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .cup-body {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, var(--cup-color), var(--cup-shadow));
+      border-radius: 40% 40% 5px 5px;
+      position: relative;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .cup-body::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px 10px 0 0;
+    }
+
+    .cup-body::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 10%;
+      width: 80%;
+      height: 5px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+    }
+
+    /* Ball Styling */
+    .ball {
+      width: 30px;
+      height: 30px;
+      background: radial-gradient(circle at 30% 30%, #ff7675, #d63031);
+      border-radius: 50%;
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .ball.hidden {
+      display: none;
+    }
+
+    .ball.visible {
+      display: block;
+    }
+
+    /* Animations */
+    .cup-wrapper.lifted .cup {
+      transform: translateY(-60px);
+    }
+
+    .cup-wrapper.shake .cup {
+      animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+    }
+
+    @keyframes shake {
+
+      10%,
+      90% {
+        transform: translate3d(-1px, 0, 0);
+      }
+
+      20%,
+      80% {
+        transform: translate3d(2px, 0, 0);
+      }
+
+      30%,
+      50%,
+      70% {
+        transform: translate3d(-4px, 0, 0);
+      }
+
+      40%,
+      60% {
+        transform: translate3d(4px, 0, 0);
+      }
+    }
+
+    .message-area {
+      margin-top: 20px;
+      height: 30px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      color: var(--secondary-color);
+      text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+    }
+
+    .controls {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .difficulty-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 5px;
+      border-radius: 30px;
+    }
+
+    .radio-label {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .radio-label input {
+      display: none;
+    }
+
+    .radio-label span {
+      display: block;
+      padding: 8px 20px;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .radio-label input:checked+span {
+      background: var(--secondary-color);
+      color: #1a1a2e;
+      box-shadow: 0 0 15px rgba(78, 205, 196, 0.4);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    button {
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.1s, filter 0.2s;
+      flex: 1;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--secondary-color);
+      color: #1a1a2e;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .settings {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-icon {
+      background: none;
+      font-size: 1.5rem;
+      padding: 5px;
+      flex: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .cups-container {
+        gap: 10px;
+      }
+
+      .cup-wrapper {
+        width: 70px;
+        height: 100px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game-container">
+    <header>
+      <h1>Tìm BÓNG</h1>
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="label">Điểm:</span>
+          <span id="score" class="value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Cao nhất:</span>
+          <span id="high-score" class="value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="label">Lượt:</span>
+          <span id="round" class="value">0</span>
+        </div>
+      </div>
+    </header>
+    <div class="game-area">
+      <div class="cups-container">
+        <!-- Cups will be generated here or static -->
+        <div class="cup-wrapper" data-index="0" role="button" aria-label="Cốc số 1" tabindex="0">
+          <div class="cup">
+            <div class="cup-body"></div>
+            <div class="cup-lid"></div>
+          </div>
+          <div class="ball hidden"></div>
+        </div>
+        <div class="cup-wrapper" data-index="1" role="button" aria-label="Cốc số 2" tabindex="0">
+          <div class="cup">
+            <div class="cup-body"></div>
+            <div class="cup-lid"></div>
+          </div>
+          <div class="ball hidden"></div>
+        </div>
+        <div class="cup-wrapper" data-index="2" role="button" aria-label="Cốc số 3" tabindex="0">
+          <div class="cup">
+            <div class="cup-body"></div>
+            <div class="cup-lid"></div>
+          </div>
+          <div class="ball hidden"></div>
+        </div>
+      </div>
+      <div id="message-area" class="message-area">Chọn độ khó và bắt đầu!</div>
+    </div>
+    <div class="controls">
+      <div class="difficulty-selector">
+        <label class="radio-label">
+          <input type="radio" name="difficulty" value="easy" checked>
+          <span>Dễ</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="difficulty" value="medium">
+          <span>Vừa</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="difficulty" value="hard">
+          <span>Khó</span>
+        </label>
+      </div>
+      <div class="action-buttons">
+        <button id="btn-start" class="btn-primary">Bắt đầu</button>
+        <button id="btn-reset" class="btn-secondary" disabled>Chơi lại</button>
+      </div>
+      <div class="settings">
+        <button id="btn-sound" class="btn-icon" aria-label="Bật/Tắt âm thanh">
+          🔊
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+    /**
+     * Trò chơi 3 Cốc & Quả Bóng
+     * Logic chính:
+     * 1. Quản lý trạng thái game (đang tráo, chờ người chơi chọn, kết thúc).
+     * 2. Hệ thống tráo cốc dựa trên CSS Transform và Promise để đồng bộ.
+     * 3. Theo dõi vị trí bóng bằng biến `ballIndex` độc lập với DOM.
+     */
+    // --- Cấu hình & Trạng thái ---
+    const CONFIG = {
+      easy: { swaps: 8, speed: 500 },
+      medium: { swaps: 15, speed: 350 },
+      hard: { swaps: 25, speed: 180 }
+    };
+    const STATE = {
+      score: 0,
+      round: 0,
+      highScore: parseInt(localStorage.getItem('shellGameHighScore')) || 0,
+      ballIndex: 1, // 0, 1, 2 - Vị trí thực của bóng
+      isShuffling: false,
+      isGameActive: false,
+      difficulty: 'easy',
+      soundEnabled: true,
+      cupPositions: [0, 1, 2] // Map vị trí visual hiện tại của các cốc [indexDOM -> visualPos]
+    };
+    // --- DOM Elements ---
+    const ui = {
+      cups: document.querySelectorAll('.cup-wrapper'),
+      balls: document.querySelectorAll('.ball'),
+      score: document.getElementById('score'),
+      highScore: document.getElementById('high-score'),
+      round: document.getElementById('round'),
+      msg: document.getElementById('message-area'),
+      btnStart: document.getElementById('btn-start'),
+      btnReset: document.getElementById('btn-reset'),
+      btnSound: document.getElementById('btn-sound'),
+      radios: document.querySelectorAll('input[name="difficulty"]')
+    };
+    // --- Audio Context ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const playTone = (freq, type, duration) => {
+      if (!STATE.soundEnabled) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    };
+    const sounds = {
+      flip: () => playTone(400, 'sine', 0.1),
+      shuffle: () => playTone(200, 'triangle', 0.05),
+      win: () => {
+        playTone(600, 'sine', 0.1);
+        setTimeout(() => playTone(800, 'sine', 0.2), 100);
+      },
+      lose: () => {
+        playTone(300, 'sawtooth', 0.2);
+        setTimeout(() => playTone(200, 'sawtooth', 0.3), 200);
+      }
+    };
+    // --- Khởi tạo ---
+    function init() {
+      ui.highScore.textContent = STATE.highScore;
+      // Event Listeners
+      ui.btnStart.addEventListener('click', startGame);
+      ui.btnReset.addEventListener('click', resetGame);
+      ui.btnSound.addEventListener('click', toggleSound);
+      ui.radios.forEach(r => {
+        r.addEventListener('change', (e) => {
+          STATE.difficulty = e.target.value;
+        });
+      });
+      ui.cups.forEach((cup, index) => {
+        cup.addEventListener('click', () => handleCupClick(index));
+        // Keyboard support setup handled globally
+      });
+      document.addEventListener('keydown', (e) => {
+        if (!STATE.isGameActive || STATE.isShuffling) return;
+        if (['1', '2', '3'].includes(e.key)) {
+          handleCupClick(parseInt(e.key) - 1);
+        }
+      });
+      // Initial positioning
+      resetCupPositions();
+    }
+    function toggleSound() {
+      STATE.soundEnabled = !STATE.soundEnabled;
+      ui.btnSound.textContent = STATE.soundEnabled ? '🔊' : '🔇';
+      ui.btnSound.style.opacity = STATE.soundEnabled ? '1' : '0.5';
+    }
+    // --- Logic Game ---
+    async function startGame() {
+      if (STATE.isShuffling) return;
+      // Resume Audio Context if suspended (browser policy)
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      STATE.isGameActive = true;
+      STATE.isShuffling = true;
+      ui.btnStart.disabled = true;
+      ui.btnReset.disabled = true;
+      ui.radios.forEach(r => r.disabled = true);
+      ui.msg.textContent = "Đang tráo...";
+      // 1. Reset visual
+      resetCupPositions();
+      hideBall();
+      // 2. Chọn vị trí bóng ngẫu nhiên ban đầu
+      STATE.ballIndex = Math.floor(Math.random() * 3);
+      // 3. Show bóng tại vị trí đó
+      await revealBall(STATE.ballIndex, true); // true = show briefly
+      // 4. Bắt đầu tráo
+      const setting = CONFIG[STATE.difficulty];
+      await shuffleSequence(setting.swaps, setting.speed);
+      // 5. Kết thúc tráo, cho người chơi chọn
+      STATE.isShuffling = false;
+      ui.msg.textContent = "Bóng ở đâu? Chọn 1 cốc!";
+      ui.cups.forEach(c => c.style.cursor = 'pointer');
+    }
+    async function shuffleSequence(count, speed) {
+      for (let k = 0; k < count; k++) {
+        // Chọn 2 cốc ngẫu nhiên để tráo
+        let i = Math.floor(Math.random() * 3);
+        let j = Math.floor(Math.random() * 3);
+        while (i === j) {
+          j = Math.floor(Math.random() * 3);
+        }
+        await swapCups(i, j, speed);
+        sounds.shuffle();
+      }
+    }
+    /**
+     * Hoán đổi vị trí 2 cốc i và j
+     * i, j là index trong mảng ui.cups (DOM order, không đổi)
+     * Chúng ta thay đổi transform translate X để di chuyển visual.
+     */
+    function swapCups(i, j, duration) {
+      return new Promise(resolve => {
+        const cupA = ui.cups[i];
+        const cupB = ui.cups[j];
+        // Lấy vị trí visual hiện tại (0, 1, hoặc 2)
+        const posA = STATE.cupPositions[i];
+        const posB = STATE.cupPositions[j];
+        // Tính toán khoảng cách pixel cần dịch chuyển
+        // Giả sử mỗi cốc cách nhau 100px (bao gồm gap). 
+        // Tuy nhiên để chính xác responsive, ta dùng offsetLeft.
+        // Nhưng vì ta đang dùng transform, ta cần tính delta dựa trên visual index.
+        // Cập nhật map vị trí
+        STATE.cupPositions[i] = posB;
+        STATE.cupPositions[j] = posA;
+        // Nếu bóng đang ở cốc i, nó sẽ di chuyển theo cốc i -> cập nhật ballIndex logic?
+        // KHÔNG. ballIndex là vị trí LOGIC (0,1,2) trên bàn cờ.
+        // Khi tráo cốc, cốc chứa bóng di chuyển.
+        // Ví dụ: Bóng ở vị trí 0. Cốc tại 0 tráo với Cốc tại 1.
+        // Bóng giờ ở vị trí 1.
+        if (STATE.ballIndex === posA) STATE.ballIndex = posB;
+        else if (STATE.ballIndex === posB) STATE.ballIndex = posA;
+        // Apply CSS Transform
+        // Ta cần tính toán vị trí X tuyệt đối cho mỗi visual position.
+        // Visual Position 0: 0px
+        // Visual Position 1: 100% + gap
+        // Visual Position 2: 200% + 2*gap
+        // Cách đơn giản nhất: Lấy offsetLeft của các element gốc (lúc chưa transform)
+        // Element i đang ở visual posA, muốn sang posB.
+        // Element j đang ở visual posB, muốn sang posA.
+        // Để đơn giản hoá: Ta dùng % hoặc px cố định tương đối.
+        // Container flex gap = 20px. Cup width = 80px. Total unit = 100px.
+        // Nhưng responsive width thay đổi.
+        // Giải pháp: Tính toạ độ X của slot 0, 1, 2.
+        const slot0 = 0;
+        const slot1 = ui.cups[1].offsetLeft - ui.cups[0].offsetLeft;
+        const slot2 = ui.cups[2].offsetLeft - ui.cups[0].offsetLeft;
+        const slots = [slot0, slot1, slot2];
+        // Dịch chuyển
+        cupA.style.transition = `transform ${duration}ms ease-in-out`;
+        cupB.style.transition = `transform ${duration}ms ease-in-out`;
+        // Transform X = (TargetSlot - InitialSlotOfElement)
+        // InitialSlotOfElement luôn là slots[index] vì DOM không đổi thứ tự.
+        // Wait, offsetLeft là static.
+        // Transform cần set là: slots[TargetVisualPos] - slots[OriginalDOMIndex]
+        cupA.style.transform = `translateX(${slots[STATE.cupPositions[i]] - slots[i]}px)`;
+        cupB.style.transform = `translateX(${slots[STATE.cupPositions[j]] - slots[j]}px)`;
+        setTimeout(() => {
+          resolve();
+        }, duration);
+      });
+    }
+    async function revealBall(atIndex, autoHide = false) {
+      // Tìm cốc nào đang ở vị trí visual `atIndex`
+      // STATE.cupPositions[domIndex] == atIndex
+      const domIndex = STATE.cupPositions.findIndex(pos => pos === atIndex);
+      const cupWrapper = ui.cups[domIndex];
+      const ball = cupWrapper.querySelector('.ball');
+      ball.classList.remove('hidden');
+      ball.classList.add('visible');
+      // Animation lật cốc
+      sounds.flip();
+      cupWrapper.classList.add('lifted');
+      if (autoHide) {
+        await new Promise(r => setTimeout(r, 1000));
+        cupWrapper.classList.remove('lifted');
+        await new Promise(r => setTimeout(r, 300));
+        ball.classList.add('hidden');
+        ball.classList.remove('visible');
+      }
+    }
+    async function handleCupClick(domIndex) {
+      if (!STATE.isGameActive || STATE.isShuffling) return;
+      STATE.isGameActive = false; // Chặn click tiếp
+      // Vị trí visual mà người chơi click vào
+      const clickedVisualPos = STATE.cupPositions[domIndex];
+      // Check kết quả
+      const isCorrect = (clickedVisualPos === STATE.ballIndex);
+      // Reveal cốc đã chọn
+      const cupWrapper = ui.cups[domIndex];
+      const ball = cupWrapper.querySelector('.ball');
+      // Nếu đúng, bóng phải ở đây. Nếu sai, bóng không ở đây.
+      // Nhưng logic revealBall của ta là reveal tại vị trí visual.
+      // Ta cần show bóng ở đúng chỗ của nó.
+      // 1. Lật cốc người chơi chọn
+      sounds.flip();
+      cupWrapper.classList.add('lifted');
+      if (isCorrect) {
+        ball.classList.remove('hidden');
+        ball.classList.add('visible');
+        sounds.win();
+        ui.msg.textContent = "CHÍNH XÁC! +1 Điểm";
+        ui.msg.style.color = "#4ECDC4";
+        updateScore(1);
+      } else {
+        sounds.lose();
+        ui.msg.textContent = "SAI RỒI!";
+        ui.msg.style.color = "#FF6B6B";
+        cupWrapper.classList.add('shake');
+        // Delay rồi lật cốc đúng
+        await new Promise(r => setTimeout(r, 600));
+        // Tìm cốc chứa bóng thật
+        const correctDomIndex = STATE.cupPositions.findIndex(pos => pos === STATE.ballIndex);
+        const correctCup = ui.cups[correctDomIndex];
+        const correctBall = correctCup.querySelector('.ball');
+        correctBall.classList.remove('hidden');
+        correctBall.classList.add('visible');
+        correctCup.classList.add('lifted');
+        ui.msg.textContent = `Sai rồi! Bóng ở cốc số ${STATE.ballIndex + 1}`;
+      }
+      // Enable nút chơi lại / tiếp tục
+      ui.btnStart.textContent = "Tiếp tục";
+      ui.btnStart.disabled = false;
+      ui.btnReset.disabled = false;
+      ui.radios.forEach(r => r.disabled = false);
+      STATE.round++;
+      ui.round.textContent = STATE.round;
+    }
+    function updateScore(points) {
+      STATE.score += points;
+      ui.score.textContent = STATE.score;
+      if (STATE.score > STATE.highScore) {
+        STATE.highScore = STATE.score;
+        ui.highScore.textContent = STATE.highScore;
+        localStorage.setItem('shellGameHighScore', STATE.highScore);
+      }
+    }
+    function resetGame() {
+      STATE.score = 0;
+      STATE.round = 0;
+      ui.score.textContent = 0;
+      ui.round.textContent = 0;
+      ui.btnStart.textContent = "Bắt đầu";
+      resetCupPositions();
+      ui.msg.textContent = "Chọn độ khó và bắt đầu!";
+      ui.msg.style.color = "var(--secondary-color)";
+      // Reset visual classes
+      ui.cups.forEach(c => {
+        c.classList.remove('lifted', 'shake');
+        c.querySelector('.ball').classList.add('hidden');
+      });
+    }
+    function resetCupPositions() {
+      STATE.cupPositions = [0, 1, 2];
+      ui.cups.forEach(c => {
+        c.style.transition = 'transform 0.3s ease';
+        c.style.transform = 'translateX(0)';
+        c.classList.remove('lifted', 'shake');
+      });
+    }
+    function hideBall() {
+      ui.balls.forEach(b => {
+        b.classList.add('hidden');
+        b.classList.remove('visible');
+      });
+    }
+    // Start
+    init();
+  </script>
+</body>
+
+</html>
