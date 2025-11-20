@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thoát Khỏi Mê Cung - 3D Maze Escape (Enhanced)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Orbitron', monospace;
+      background: #000;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #gameContainer {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #gameCanvas {
+      display: block;
+      background: #000;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* UI Overlay Styles */
+    .ui-layer {
+      position: absolute;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+    }
+
+    #menuScreen {
+      pointer-events: auto;
+      background: radial-gradient(circle at center, rgba(20, 30, 50, 0.95), rgba(5, 5, 10, 0.98));
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      backdrop-filter: blur(5px);
+    }
+
+    .game-title {
+      font-size: 5rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 10px;
+      text-shadow:
+        0 0 10px #00ff88,
+        0 0 20px #00ff88,
+        0 0 40px #00ff88;
+      animation: glitch 3s infinite;
+    }
+
+    @keyframes glitch {
+      0% {
+        text-shadow: 0 0 10px #00ff88, 2px 2px #ff00de;
+      }
+
+      25% {
+        text-shadow: 0 0 10px #00ff88, -2px -2px #00ccff;
+      }
+
+      50% {
+        text-shadow: 0 0 20px #00ff88, 2px -2px #ff00de;
+      }
+
+      75% {
+        text-shadow: 0 0 10px #00ff88, -2px 2px #00ccff;
+      }
+
+      100% {
+        text-shadow: 0 0 10px #00ff88, 2px 2px #ff00de;
+      }
+    }
+
+    .level-buttons {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      perspective: 1000px;
+    }
+
+    .level-btn {
+      padding: 1.2rem 3rem;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border: 2px solid #00ff88;
+      background: rgba(0, 20, 10, 0.6);
+      color: #00ff88;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+    }
+
+    .level-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.4), transparent);
+      transition: 0.5s;
+    }
+
+    .level-btn:hover::before {
+      left: 100%;
+    }
+
+    .level-btn:hover {
+      background: #00ff88;
+      color: #000;
+      box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+      transform: scale(1.05);
+    }
+
+    .game-info {
+      text-align: center;
+      color: #aaddff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.2rem;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-left: 4px solid #00ff88;
+      border-right: 4px solid #00ff88;
+    }
+
+    /* HUD Styles */
+    #hud {
+      display: none;
+      z-index: 50;
+    }
+
+    .hud-panel {
+      position: absolute;
+      padding: 10px 20px;
+      background: rgba(0, 10, 20, 0.8);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 4px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+    }
+
+    #top-hud {
+      top: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hud-text {
+      color: #00ff88;
+      font-size: 1.2rem;
+      text-shadow: 0 0 5px rgba(0, 255, 136, 0.5);
+    }
+
+    #timer {
+      color: #ff4444;
+    }
+
+    /* Stamina Bar */
+    #stamina-container {
+      width: 200px;
+      height: 10px;
+      background: #333;
+      border: 1px solid #555;
+      margin-top: 5px;
+      position: relative;
+      transform: skewX(-20deg);
+    }
+
+    #stamina-bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #00ccff, #00ff88);
+      transition: width 0.1s linear;
+    }
+
+    #stamina-label {
+      font-size: 0.8rem;
+      color: #ccc;
+      margin-bottom: 2px;
+    }
+
+    #minimap-container {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 5px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #00ff88;
+      border-radius: 20px;
+      width: 160px;
+      height: 160px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+    }
+
+    #minimap {
+      display: block;
+      border-radius: 20px;
+    }
+
+    #controls-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      font-family: 'Rajdhani', sans-serif;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 1rem;
+    }
+
+    .key {
+      display: inline-block;
+      padding: 2px 6px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 0 2px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    /* Crosshair */
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      mix-blend-mode: difference;
+    }
+
+    #crosshair::before,
+    #crosshair::after {
+      content: '';
+      position: absolute;
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    #crosshair::before {
+      top: 9px;
+      left: 0;
+      width: 20px;
+      height: 2px;
+    }
+
+    #crosshair::after {
+      top: 0;
+      left: 9px;
+      width: 2px;
+      height: 20px;
+    }
+
+    /* Victory Screen */
+    .victory-screen {
+      display: none;
+      pointer-events: auto;
+      background: rgba(0, 0, 0, 0.9);
+    }
+
+    .victory-content {
+      text-align: center;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.5);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .victory-text {
+      font-size: 4rem;
+      color: #ffd700;
+      margin-bottom: 1rem;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+
+    /* Vignette Effect */
+    .vignette {
+      background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.8) 100%);
+    }
+
+    /* Damage/Hit Effect */
+    #damage-overlay {
+      background: radial-gradient(circle, transparent 50%, rgba(255, 0, 0, 0.4) 100%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    <!-- Post-processing effects -->
+    <div class="ui-layer vignette"></div>
+    <div id="damage-overlay" class="ui-layer"></div>
+    <div id="crosshair" class="ui-layer"></div>
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="ui-layer">
+      <h1 class="game-title">NEON MAZE 3D</h1>
+      <div class="level-buttons">
+        <button class="level-btn" onclick="Game.start(1)">Dễ</button>
+        <button class="level-btn" onclick="Game.start(2)">Vừa</button>
+        <button class="level-btn" onclick="Game.start(3)">Khó</button>
+      </div>
+      <div class="game-info">
+        <p>WASD: Di chuyển | SHIFT: Chạy nhanh</p>
+        <p>Chuột: Nhìn xung quanh | M: Bản đồ</p>
+        <p>Tìm lối thoát màu vàng trước khi hết giờ!</p>
+      </div>
+    </div>
+    <!-- HUD -->
+    <div id="hud" class="ui-layer">
+      <div id="top-hud" class="hud-panel">
+        <div id="level-info" class="hud-text">LEVEL 1</div>
+        <div id="timer" class="hud-text">00:00</div>
+        <div>
+          <div id="stamina-label">THỂ LỰC</div>
+          <div id="stamina-container">
+            <div id="stamina-bar"></div>
+          </div>
+        </div>
+      </div>
+      <div id="minimap-container">
+        <canvas id="minimap"></canvas>
+      </div>
+      <div id="controls-hint">
+        <span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span>
+        Di chuyển
+        <span class="key">SHIFT</span> Chạy
+        <span class="key">ESC</span> Menu
+      </div>
+    </div>
+    <!-- Victory Screen -->
+    <div id="victoryScreen" class="ui-layer victory-screen">
+      <div class="victory-content">
+        <div class="victory-text">CHIẾN THẮNG!</div>
+        <div class="level-buttons" style="justify-content: center;">
+          <button class="level-btn" onclick="Game.nextLevel()">Tiếp theo</button>
+          <button class="level-btn" onclick="Game.showMenu()" style="border-color: #fff; color: #fff;">Menu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    // --- Game Constants & Configuration ---
+    const CONFIG = {
+      FOV: Math.PI / 3,
+      RAY_COUNT: 0, // Will be set based on width
+      WALL_HEIGHT_FACTOR: 1,
+      SPEED_WALK: 0.08,
+      SPEED_RUN: 0.14,
+      TURN_SPEED: 0.003,
+      MOUSE_SENSITIVITY: 0.002,
+      STAMINA_DRAIN: 1.0,
+      STAMINA_REGEN: 0.5,
+      BOB_SPEED: 0.15,
+      BOB_AMOUNT: 0.1,
+      COLLISION_PADDING: 0.2
+    };
+    // --- Game State ---
+    const State = {
+      mode: 'menu', // menu, playing, victory, gameover
+      level: 1,
+      timeRemaining: 0,
+      lastTime: 0,
+      player: {
+        x: 0, y: 0,
+        dir: 0, // Angle in radians
+        planeX: 0, planeY: 0, // Camera plane for raycasting
+        velocity: { x: 0, y: 0 },
+        stamina: 100,
+        isRunning: false,
+        bobPhase: 0,
+        bobOffset: 0
+      },
+      map: {
+        size: 0,
+        grid: [],
+        exit: { x: 0, y: 0 },
+        lighting: 1.0
+      },
+      input: {
+        forward: false, backward: false,
+        left: false, right: false,
+        turnLeft: false, turnRight: false,
+        run: false
+      }
+    };
+    // --- Graphics Contexts ---
+    let canvas, ctx;
+    let miniCanvas, miniCtx;
+    let animationFrameId;
+    // --- Initialization ---
+    window.onload = () => {
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d', { alpha: false }); // Optimize
+      miniCanvas = document.getElementById('minimap');
+      miniCtx = miniCanvas.getContext('2d');
+      resize();
+      window.addEventListener('resize', resize);
+      setupInput();
+      // Start render loop
+      requestAnimationFrame(gameLoop);
+    };
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      CONFIG.RAY_COUNT = Math.min(canvas.width, 600); // Limit rays for performance
+      miniCanvas.width = 150;
+      miniCanvas.height = 150;
+    }
+    function setupInput() {
+      document.addEventListener('keydown', e => handleKey(e, true));
+      document.addEventListener('keyup', e => handleKey(e, false));
+      // Mouse Lock
+      canvas.addEventListener('click', () => {
+        if (State.mode === 'playing') canvas.requestPointerLock();
+      });
+      document.addEventListener('mousemove', e => {
+        if (State.mode === 'playing' && document.pointerLockElement === canvas) {
+          State.player.dir += e.movementX * CONFIG.MOUSE_SENSITIVITY;
+        }
+      });
+    }
+    function handleKey(e, isDown) {
+      const code = e.code;
+      const input = State.input;
+      switch (code) {
+        case 'KeyW': input.forward = isDown; break;
+        case 'KeyS': input.backward = isDown; break;
+        case 'KeyA': input.left = isDown; break;
+        case 'KeyD': input.right = isDown; break;
+        case 'ArrowLeft': input.turnLeft = isDown; break;
+        case 'ArrowRight': input.turnRight = isDown; break;
+        case 'ShiftLeft': input.run = isDown; break;
+        case 'KeyM':
+          if (isDown) {
+            const map = document.getElementById('minimap-container');
+            map.style.display = map.style.display === 'none' ? 'block' : 'none';
+          }
+          break;
+        case 'Escape': if (isDown) Game.showMenu(); break;
+      }
+    }
+    // --- Game Logic ---
+    const Game = {
+      start: (level) => {
+        State.level = level;
+        State.mode = 'playing';
+        // Generate Map
+        MapGenerator.generate(level);
+        // Reset Player
+        State.player.x = 1.5;
+        State.player.y = 1.5;
+        State.player.dir = 0;
+        State.player.stamina = 100;
+        State.player.velocity = { x: 0, y: 0 };
+        // Reset Timer
+        State.timeRemaining = level === 1 ? 300 : (level === 2 ? 240 : 180);
+        State.lastTime = performance.now();
+        // UI Updates
+        document.getElementById('menuScreen').style.display = 'none';
+        document.getElementById('victoryScreen').style.display = 'none';
+        document.getElementById('hud').style.display = 'block';
+        document.getElementById('level-info').textContent = `LEVEL ${level}`;
+        canvas.requestPointerLock();
+      },
+      showMenu: () => {
+        State.mode = 'menu';
+        document.getElementById('menuScreen').style.display = 'flex';
+        document.getElementById('hud').style.display = 'none';
+        document.getElementById('victoryScreen').style.display = 'none';
+        document.exitPointerLock();
+      },
+      nextLevel: () => {
+        if (State.level < 3) Game.start(State.level + 1);
+        else {
+          alert("Chúc mừng! Bạn đã phá đảo!");
+          Game.showMenu();
+        }
+      },
+      update: (dt) => {
+        if (State.mode !== 'playing') return;
+        // Timer
+        State.timeRemaining -= dt;
+        if (State.timeRemaining <= 0) {
+          Game.showMenu();
+          alert("Hết giờ!");
+          return;
+        }
+        // Player Movement Physics
+        Physics.updatePlayer(dt);
+        // Check Win
+        const distToExit = Math.hypot(State.player.x - State.map.exit.x, State.player.y - State.map.exit.y);
+        if (distToExit < 0.8) {
+          const vs = document.getElementById('victoryScreen');
+          vs.style.display = 'flex';
+          vs.style.justifyContent = 'center';
+          vs.style.alignItems = 'center';
+          State.mode = 'victory';
+          document.exitPointerLock();
+        }
+        // Update UI
+        const mins = Math.floor(State.timeRemaining / 60);
+        const secs = Math.floor(State.timeRemaining % 60);
+        document.getElementById('timer').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+        document.getElementById('stamina-bar').style.width = `${State.player.stamina}%`;
+      }
+    };
+    const Physics = {
+      updatePlayer: (dt) => {
+        const p = State.player;
+        const input = State.input;
+        // Rotation
+        if (input.turnLeft) p.dir -= CONFIG.TURN_SPEED * 1000 * dt;
+        if (input.turnRight) p.dir += CONFIG.TURN_SPEED * 1000 * dt;
+        // Movement Vector
+        let moveDir = 0;
+        let isMoving = false;
+        // Calculate target velocity based on input
+        let targetVx = 0;
+        let targetVy = 0;
+        // Stamina Logic
+        const canRun = input.run && p.stamina > 0;
+        const speed = canRun ? CONFIG.SPEED_RUN : CONFIG.SPEED_WALK;
+        if (canRun && (input.forward || input.backward || input.left || input.right)) {
+          p.stamina = Math.max(0, p.stamina - CONFIG.STAMINA_DRAIN);
+          p.isRunning = true;
+        } else {
+          p.stamina = Math.min(100, p.stamina + CONFIG.STAMINA_REGEN);
+          p.isRunning = false;
+        }
+        if (input.forward) { targetVx += Math.cos(p.dir); targetVy += Math.sin(p.dir); isMoving = true; }
+        if (input.backward) { targetVx -= Math.cos(p.dir); targetVy -= Math.sin(p.dir); isMoving = true; }
+        if (input.left) { targetVx += Math.cos(p.dir - Math.PI / 2); targetVy += Math.sin(p.dir - Math.PI / 2); isMoving = true; }
+        if (input.right) { targetVx += Math.cos(p.dir + Math.PI / 2); targetVy += Math.sin(p.dir + Math.PI / 2); isMoving = true; }
+        // Normalize and apply speed
+        if (isMoving) {
+          const len = Math.hypot(targetVx, targetVy);
+          targetVx = (targetVx / len) * speed;
+          targetVy = (targetVy / len) * speed;
+        }
+        // Smooth Inertia (Lerp velocity)
+        const lerpFactor = isMoving ? 0.15 : 0.1; // Accelerate fast, stop a bit slower
+        p.velocity.x += (targetVx - p.velocity.x) * lerpFactor;
+        p.velocity.y += (targetVy - p.velocity.y) * lerpFactor;
+        // Collision Detection & Sliding
+        const nextX = p.x + p.velocity.x * 60 * dt; // Scale by frame time
+        const nextY = p.y + p.velocity.y * 60 * dt;
+        // Check X axis
+        if (!MapGenerator.isWall(nextX, p.y)) {
+          p.x = nextX;
+        } else {
+          // Wall slide friction
+          p.velocity.x *= 0.5;
+        }
+        // Check Y axis
+        if (!MapGenerator.isWall(p.x, nextY)) {
+          p.y = nextY;
+        } else {
+          p.velocity.y *= 0.5;
+        }
+        // Head Bobbing
+        if (isMoving) {
+          p.bobPhase += (p.isRunning ? 15 : 10) * dt;
+          p.bobOffset = Math.sin(p.bobPhase) * CONFIG.BOB_AMOUNT;
+        } else {
+          // Return to center
+          p.bobOffset *= 0.9;
+          p.bobPhase = 0;
+        }
+      }
+    };
+    const MapGenerator = {
+      generate: (level) => {
+        const size = level === 1 ? 13 : (level === 2 ? 17 : 23);
+        State.map.size = size;
+        State.map.grid = Array(size).fill().map(() => Array(size).fill(1));
+        // Recursive Backtracker Maze Algorithm
+        const stack = [];
+        const start = { x: 1, y: 1 };
+        State.map.grid[1][1] = 0;
+        stack.push(start);
+        while (stack.length > 0) {
+          const current = stack[stack.length - 1];
+          const neighbors = [];
+          // Check neighbors (distance 2)
+          [[0, 2], [2, 0], [0, -2], [-2, 0]].forEach(([dx, dy]) => {
+            const nx = current.x + dx;
+            const ny = current.y + dy;
+            if (nx > 0 && nx < size - 1 && ny > 0 && ny < size - 1 && State.map.grid[ny][nx] === 1) {
+              neighbors.push({ x: nx, y: ny, dx, dy });
+            }
+          });
+          if (neighbors.length > 0) {
+            const next = neighbors[Math.floor(Math.random() * neighbors.length)];
+            State.map.grid[next.y][next.x] = 0;
+            State.map.grid[current.y + next.dy / 2][current.x + next.dx / 2] = 0;
+            stack.push({ x: next.x, y: next.y });
+          } else {
+            stack.pop();
+          }
+        }
+        // Set Exit (Far corner)
+        State.map.exit = { x: size - 2, y: size - 2 };
+        State.map.grid[size - 2][size - 2] = 2; // 2 is exit
+        // Add some random loops for easier navigation
+        for (let i = 0; i < size; i++) {
+          const rx = Math.floor(Math.random() * (size - 2)) + 1;
+          const ry = Math.floor(Math.random() * (size - 2)) + 1;
+          if (State.map.grid[ry][rx] === 1 && Math.random() > 0.7) {
+            State.map.grid[ry][rx] = 0;
+          }
+        }
+      },
+      isWall: (x, y) => {
+        const gx = Math.floor(x);
+        const gy = Math.floor(y);
+        if (gx < 0 || gx >= State.map.size || gy < 0 || gy >= State.map.size) return true;
+        return State.map.grid[gy][gx] === 1;
+      }
+    };
+    // --- Rendering System ---
+    const Renderer = {
+      draw: () => {
+        // Clear background
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (State.mode === 'menu') return;
+        // Draw Ceiling & Floor with Gradient
+        const horizon = canvas.height / 2 + State.player.bobOffset * 100;
+        // Ceiling
+        const ceilGrad = ctx.createLinearGradient(0, 0, 0, horizon);
+        ceilGrad.addColorStop(0, '#000510');
+        ceilGrad.addColorStop(1, '#1a2a3a');
+        ctx.fillStyle = ceilGrad;
+        ctx.fillRect(0, 0, canvas.width, horizon);
+        // Floor
+        const floorGrad = ctx.createLinearGradient(0, horizon, 0, canvas.height);
+        floorGrad.addColorStop(0, '#112211');
+        floorGrad.addColorStop(1, '#000');
+        ctx.fillStyle = floorGrad;
+        ctx.fillRect(0, horizon, canvas.width, canvas.height - horizon);
+        // Raycasting
+        const p = State.player;
+        const map = State.map;
+        const rayCount = CONFIG.RAY_COUNT;
+        const stripWidth = canvas.width / rayCount;
+        for (let i = 0; i < rayCount; i++) {
+          // Calculate ray position and direction
+          const cameraX = 2 * i / rayCount - 1;
+          const rayDirX = Math.cos(p.dir) + Math.cos(p.dir + Math.PI / 2) * cameraX * 0.66; // 0.66 is FOV scaler
+          const rayDirY = Math.sin(p.dir) + Math.sin(p.dir + Math.PI / 2) * cameraX * 0.66;
+          let mapX = Math.floor(p.x);
+          let mapY = Math.floor(p.y);
+          let sideDistX, sideDistY;
+          const deltaDistX = Math.abs(1 / rayDirX);
+          const deltaDistY = Math.abs(1 / rayDirY);
+          let perpWallDist;
+          let stepX, stepY;
+          let hit = 0;
+          let side; // 0 for NS, 1 for EW
+          if (rayDirX < 0) {
+            stepX = -1;
+            sideDistX = (p.x - mapX) * deltaDistX;
+          } else {
+            stepX = 1;
+            sideDistX = (mapX + 1.0 - p.x) * deltaDistX;
+          }
+          if (rayDirY < 0) {
+            stepY = -1;
+            sideDistY = (p.y - mapY) * deltaDistY;
+          } else {
+            stepY = 1;
+            sideDistY = (mapY + 1.0 - p.y) * deltaDistY;
+          }
+          // DDA Algorithm
+          while (hit === 0) {
+            if (sideDistX < sideDistY) {
+              sideDistX += deltaDistX;
+              mapX += stepX;
+              side = 0;
+            } else {
+              sideDistY += deltaDistY;
+              mapY += stepY;
+              side = 1;
+            }
+            if (map.grid[mapY] && map.grid[mapY][mapX] > 0) {
+              hit = map.grid[mapY][mapX];
+            }
+          }
+          // Calculate distance projected on camera direction
+          if (side === 0) perpWallDist = (mapX - p.x + (1 - stepX) / 2) / rayDirX;
+          else perpWallDist = (mapY - p.y + (1 - stepY) / 2) / rayDirY;
+          // Calculate height of line to draw on screen
+          const h = canvas.height;
+          const lineHeight = Math.floor(h / perpWallDist);
+          // Calculate lowest and highest pixel to fill in current stripe
+          const drawStart = -lineHeight / 2 + h / 2 + p.bobOffset * 100;
+          // const drawEnd = lineHeight / 2 + h / 2 + p.bobOffset * 100;
+          // --- Coloring & Texturing ---
+          let color;
+          let wallX; // Where exactly the wall was hit
+          if (side == 0) wallX = p.y + perpWallDist * rayDirY;
+          else wallX = p.x + perpWallDist * rayDirX;
+          wallX -= Math.floor(wallX);
+          // Basic shading based on side
+          let brightness = side === 1 ? 0.7 : 1.0;
+          // Distance Fog (Darkness)
+          const fog = Math.min(1, 1.5 / (perpWallDist * 0.15)); // Fog factor
+          if (hit === 2) { // Exit
+            const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
+            // Exit glows through fog (min opacity 0.6)
+            const exitFog = Math.max(fog, 0.6);
+            color = `rgba(${255}, ${200 + pulse * 55}, ${50}, ${exitFog})`;
+          } else {
+            // Procedural Texture: Vertical Stripes
+            const texture = (Math.floor(wallX * 10) % 2 === 0) ? 0.9 : 1.0;
+            // Neon Blue/Cyan Theme
+            const r = 0 * brightness * texture;
+            const g = 200 * brightness * texture;
+            const b = 255 * brightness * texture;
+            color = `rgba(${r}, ${g}, ${b}, ${fog})`;
+          }
+          ctx.fillStyle = color;
+          ctx.fillRect(i * stripWidth, drawStart, stripWidth + 1, lineHeight);
+        }
+        // Draw Minimap
+        Renderer.drawMinimap();
+      },
+      drawMinimap: () => {
+        const map = State.map;
+        const p = State.player;
+        const cellSize = miniCanvas.width / map.size;
+        miniCtx.fillStyle = 'rgba(0,0,0,0.8)';
+        miniCtx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
+        for (let y = 0; y < map.size; y++) {
+          for (let x = 0; x < map.size; x++) {
+            if (map.grid[y][x] === 1) {
+              miniCtx.fillStyle = '#444';
+              miniCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            } else if (map.grid[y][x] === 2) {
+              miniCtx.fillStyle = '#ffaa00';
+              miniCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+            }
+          }
+        }
+        // Player
+        miniCtx.fillStyle = '#00ff88';
+        miniCtx.beginPath();
+        miniCtx.arc(p.x * cellSize, p.y * cellSize, 3, 0, Math.PI * 2);
+        miniCtx.fill();
+        // View Cone
+        miniCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+        miniCtx.beginPath();
+        miniCtx.moveTo(p.x * cellSize, p.y * cellSize);
+        miniCtx.lineTo(
+          (p.x + Math.cos(p.dir - Math.PI / 4) * 3) * cellSize,
+          (p.y + Math.sin(p.dir - Math.PI / 4) * 3) * cellSize
+        );
+        miniCtx.lineTo(
+          (p.x + Math.cos(p.dir + Math.PI / 4) * 3) * cellSize,
+          (p.y + Math.sin(p.dir + Math.PI / 4) * 3) * cellSize
+        );
+        miniCtx.closePath();
+        miniCtx.stroke();
+      }
+    };
+    // --- Main Loop ---
+    function gameLoop() {
+      const now = performance.now();
+      const dt = (now - State.lastTime) / 1000;
+      State.lastTime = now;
+      Game.update(dt);
+      Renderer.draw();
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+  </script>
+</body>
+
+</html>

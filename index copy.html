@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="vi" style="height: 100%;">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Banner</title>
+    <script src="/_sdk/element_sdk.js"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460, #533483);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .game-text {
+            position: absolute;
+            font-size: 8rem;
+            font-weight: 900;
+            color: #ff6b6b;
+            text-shadow:
+                0 0 20px #ff6b6b,
+                0 0 40px #ff6b6b,
+                0 0 60px #ff6b6b,
+                0 0 80px #ff6b6b;
+            letter-spacing: 0.2em;
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(2deg);
+            }
+        }
+
+        .game-text:hover {
+            transform: scale(1.1) !important;
+            color: #4ecdc4;
+            text-shadow:
+                0 0 30px #4ecdc4,
+                0 0 60px #4ecdc4,
+                0 0 90px #4ecdc4;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 4s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100%) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100%) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .glow-orb {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 107, 107, 0.3) 0%, transparent 70%);
+            animation: orbFloat 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes orbFloat {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(200px, -100px) scale(1.2);
+            }
+
+            66% {
+                transform: translate(-150px, 100px) scale(0.8);
+            }
+        }
+
+        .lightning {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, #fff, transparent);
+            animation: lightning 0.1s ease-in-out;
+            opacity: 0;
+        }
+
+        @keyframes lightning {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+    </style>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+    <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+</head>
+
+<body>
+    <div class="stars" id="stars"></div>
+    <div class="game-text" id="gameText">
+        GAME
+    </div>
+    <div class="glow-orb" style="top: 20%; left: 10%;"></div>
+    <div class="glow-orb" style="top: 60%; right: 15%; animation-delay: -2s;"></div>
+    <div class="glow-orb" style="top: 80%; left: 70%; animation-delay: -4s;"></div>
+    <script>
+        const defaultConfig = {
+            main_text: "GAME",
+            background_color: "#1a1a2e",
+            text_color: "#ff6b6b",
+            accent_color: "#4ecdc4",
+            glow_color: "#ff6b6b"
+        };
+
+        let config = {};
+        let gameText;
+        let moveInterval, particleInterval, lightningInterval;
+
+        function initializeElements() {
+            gameText = document.getElementById('gameText');
+
+            // Tạo các ngôi sao
+            createStars();
+
+            // Bắt đầu di chuyển chữ GAME
+            startRandomMovement();
+
+            // Tạo particles
+            startParticleSystem();
+
+            // Hiệu ứng sét
+            startLightningEffect();
+
+            // Sự kiện click
+            gameText.addEventListener('click', createExplosion);
+        }
+
+        async function onConfigChange(newConfig) {
+            config = newConfig;
+
+            if (gameText) {
+                gameText.textContent = config.main_text || defaultConfig.main_text;
+                gameText.style.color = config.text_color || defaultConfig.text_color;
+                gameText.style.textShadow = `
+                    0 0 20px ${config.glow_color || defaultConfig.glow_color},
+                    0 0 40px ${config.glow_color || defaultConfig.glow_color},
+                    0 0 60px ${config.glow_color || defaultConfig.glow_color},
+                    0 0 80px ${config.glow_color || defaultConfig.glow_color}
+                `;
+            }
+        }
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function startRandomMovement() {
+            moveInterval = setInterval(() => {
+                const x = Math.random() * (window.innerWidth - gameText.offsetWidth);
+                const y = Math.random() * (window.innerHeight - gameText.offsetHeight);
+
+                gameText.style.left = x + 'px';
+                gameText.style.top = y + 'px';
+
+                // Thay đổi màu ngẫu nhiên
+                const colors = ['#ff6b6b', '#4ecdc4', '#ffd93d', '#ff8a80', '#81c784'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                gameText.style.color = randomColor;
+                gameText.style.textShadow = `
+                    0 0 20px ${randomColor},
+                    0 0 40px ${randomColor},
+                    0 0 60px ${randomColor},
+                    0 0 80px ${randomColor}
+                `;
+            }, 2000);
+        }
+
+        function startParticleSystem() {
+            particleInterval = setInterval(() => {
+                for (let i = 0; i < 3; i++) {
+                    createParticle();
+                }
+            }, 200);
+        }
+
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+
+            const colors = ['#ff6b6b', '#4ecdc4', '#ffd93d'];
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+            document.body.appendChild(particle);
+
+            setTimeout(() => {
+                if (particle.parentNode) {
+                    particle.parentNode.removeChild(particle);
+                }
+            }, 5000);
+        }
+
+        function startLightningEffect() {
+            lightningInterval = setInterval(() => {
+                if (Math.random() < 0.3) {
+                    createLightning();
+                }
+            }, 3000);
+        }
+
+        function createLightning() {
+            const lightning = document.createElement('div');
+            lightning.className = 'lightning';
+            lightning.style.left = Math.random() * 100 + '%';
+            lightning.style.top = '0px';
+            document.body.appendChild(lightning);
+
+            setTimeout(() => {
+                lightning.style.opacity = '1';
+                setTimeout(() => {
+                    lightning.style.opacity = '0';
+                    setTimeout(() => {
+                        if (lightning.parentNode) {
+                            lightning.parentNode.removeChild(lightning);
+                        }
+                    }, 100);
+                }, 100);
+            }, 10);
+        }
+
+        function createExplosion() {
+            for (let i = 0; i < 20; i++) {
+                const spark = document.createElement('div');
+                spark.style.position = 'absolute';
+                spark.style.width = '4px';
+                spark.style.height = '4px';
+                spark.style.background = '#fff';
+                spark.style.borderRadius = '50%';
+                spark.style.left = gameText.offsetLeft + gameText.offsetWidth / 2 + 'px';
+                spark.style.top = gameText.offsetTop + gameText.offsetHeight / 2 + 'px';
+                spark.style.pointerEvents = 'none';
+
+                const angle = (Math.PI * 2 * i) / 20;
+                const velocity = Math.random() * 100 + 50;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+
+                document.body.appendChild(spark);
+
+                let x = 0, y = 0;
+                const animate = () => {
+                    x += vx * 0.02;
+                    y += vy * 0.02;
+                    spark.style.transform = `translate(${x}px, ${y}px)`;
+                    spark.style.opacity = Math.max(0, 1 - Math.abs(x + y) / 200);
+
+                    if (spark.style.opacity > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        if (spark.parentNode) {
+                            spark.parentNode.removeChild(spark);
+                        }
+                    }
+                };
+                animate();
+            }
+        }
+
+        // Element SDK implementation
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities: (config) => ({
+                    recolorables: [
+                        {
+                            get: () => config.text_color || defaultConfig.text_color,
+                            set: (value) => {
+                                config.text_color = value;
+                                window.elementSdk.setConfig({ text_color: value });
+                            }
+                        },
+                        {
+                            get: () => config.accent_color || defaultConfig.accent_color,
+                            set: (value) => {
+                                config.accent_color = value;
+                                window.elementSdk.setConfig({ accent_color: value });
+                            }
+                        },
+                        {
+                            get: () => config.glow_color || defaultConfig.glow_color,
+                            set: (value) => {
+                                config.glow_color = value;
+                                window.elementSdk.setConfig({ glow_color: value });
+                            }
+                        },
+                        {
+                            get: () => config.background_color || defaultConfig.background_color,
+                            set: (value) => {
+                                config.background_color = value;
+                                window.elementSdk.setConfig({ background_color: value });
+                            }
+                        }
+                    ],
+                    borderables: [],
+                    fontEditable: undefined,
+                    fontSizeable: undefined
+                }),
+                mapToEditPanelValues: (config) => new Map([
+                    ["main_text", config.main_text || defaultConfig.main_text]
+                ])
+            });
+        }
+
+        // Khởi tạo khi trang load
+        document.addEventListener('DOMContentLoaded', initializeElements);
+    </script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'995ab8914472281e',t:'MTc2MTY1NzUyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
+</html>
