@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Magic Card Trick — Đoán lá bài</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --cardBack: '#07324a';
+      --accent: #ff6b6b;
+      --muted: #9fb3c8;
+      --cardFaceBg: '#fff';
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, Arial;
+      background: linear-gradient(180deg, #061026, #071733);
+      color: #eaf6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 1100px;
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 18px
+    }
+
+    @media(max-width:980px) {
+      .wrap {
+        grid-template-columns: 1fr;
+        padding-bottom: 60px
+      }
+    }
+
+    .board {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 14px 40px rgba(2, 8, 20, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 20px
+    }
+
+    p.lead {
+      margin: 6px 0 12px;
+      color: var(--muted)
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 800
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: #fff
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    /* grid of cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(13, 1fr);
+      gap: 8px;
+      margin-top: 8px
+    }
+
+    @media(max-width:900px) {
+      .cards-grid {
+        grid-template-columns: repeat(7, 1fr)
+      }
+    }
+
+    .card {
+      width: 100%;
+      padding-top: 140%;
+      position: relative;
+      border-radius: 8px;
+      cursor: pointer;
+      transform-origin: center center;
+      perspective: 800px;
+    }
+
+    .card-inner {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      transition: transform .6s cubic-bezier(.2, .9, .25, 1);
+      border-radius: 8px
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg)
+    }
+
+    .card-face,
+    .card-back {
+      position: absolute;
+      inset: 0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden
+    }
+
+    .card-back {
+      background: linear-gradient(180deg, #07324a, #042033);
+      color: #fff;
+      box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.02);
+      font-weight: 800;
+      font-size: 14px;
+      transform: rotateY(0deg);
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .card-face {
+      background: var(--cardFaceBg);
+      color: #061129;
+      transform: rotateY(180deg);
+      font-weight: 800;
+      font-size: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.08)
+    }
+
+    .card .rank {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      font-weight: 800;
+      font-size: 13px
+    }
+
+    .card .suit {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      font-size: 20px
+    }
+
+    .card.locked {
+      cursor: not-allowed;
+      opacity: 0.85
+    }
+
+    .status {
+      margin-top: 10px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    /* big reveal modal */
+    .reveal-modal {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.6);
+      z-index: 999;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity .2s ease, visibility .2s;
+    }
+
+    .reveal-modal.show {
+      visibility: visible;
+      opacity: 1
+    }
+
+    .reveal-card {
+      width: 320px;
+      height: 440px;
+      background: var(--cardFaceBg);
+      border-radius: 12px;
+      box-shadow: 0 24px 60px rgba(2, 8, 20, 0.6);
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      align-items: center;
+      justify-content: center;
+      color: #061129;
+      font-weight: 900;
+      font-size: 28px
+    }
+
+    .reveal-title {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 12px
+    }
+
+    .explain {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .panel {
+      padding: 12px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent);
+      border: 1px solid rgba(255, 255, 255, 0.02)
+    }
+
+    .small-input {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: transparent;
+      color: inherit
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+
+    .mini {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    /* shuffle animation helper classes (applied by JS) */
+    .shuffling .card {
+      transition: transform .6s cubic-bezier(.2, .9, .25, 1), left .6s, top .6s
+    }
+
+    /* subtle pulse */
+    .pulse {
+      animation: pulseA .9s ease-in-out
+    }
+
+    @keyframes pulseA {
+      0% {
+        transform: scale(1)
+      }
+
+      50% {
+        transform: scale(1.04)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="board">
+      <h1>Magic Card Trick — Đoán lá bài bạn chọn</h1>
+      <p class="lead">Nhấn vào một lá (mặt sau). Mình sẽ tráo (fake shuffle) và sau đó lật ra chính xác lá bạn đã chọn.
+        Nút <strong>Giải thích</strong> bật ra cách trick hoạt động.</p>
+
+      <div class="controls">
+        <button id="resetBtn" class="btn ghost">Chơi lại</button>
+        <button id="shuffleBtn" class="btn">Tráo giả</button>
+        <button id="revealBtn" class="btn">Lật ra</button>
+        <button id="explainBtn" class="btn ghost">Giải thích</button>
+        <div style="margin-left:auto" class="mini">Phím tắt: <kbd>R</kbd> chơi lại • <kbd>S</kbd> tráo •
+          <kbd>Enter</kbd> lật</div>
+      </div>
+
+      <div id="statusBar" class="status">
+        <div class="small" id="instruction">Chọn 1 lá bài để bắt đầu (click).</div>
+        <div class="small" id="chosenInfo">Chưa chọn</div>
+      </div>
+
+      <div id="cardsArea" class="cards-grid" aria-label="Bàn bài">
+        <!-- JS will render 52 cards here -->
+      </div>
+    </div>
+
+    <aside class="panel">
+      <h3>Panel điều khiển</h3>
+      <div style="margin-top:8px" class="small">Preset dự đoán (dùng để thử nghiệm chế độ không-magic)</div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <select id="presetSelect" class="small-input">
+          <!-- options generated by JS -->
+        </select>
+        <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="forceMode" /> Ép (force)
+          preset</label>
+      </div>
+
+      <div class="hint">Ghi chú: mặc định script ở chế độ "magic" — nghĩa là khi bạn chọn lá, script sẽ nhớ lá đó và
+        reveal đúng; nếu bật "Ép preset", kết quả sẽ theo preset thay vì lựa chọn người chơi (dùng để kiểm thử).</div>
+
+      <div style="margin-top:12px">
+        <div class="small">Lịch sử (vòng vừa rồi):</div>
+        <div id="history" class="mini" style="margin-top:6px">—</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <div class="small">Giải thích (tắt mặc định)</div>
+        <div id="explainBox" class="explain" style="display:none">
+          <ol>
+            <li>Khi bạn click 1 lá (chọn), script lưu lại **chính xác** lá đó (rank + suit).</li>
+            <li>Trước khi reveal, script chơi animation tráo (fake shuffle) để gây ảo giác rằng vị trí thay đổi — nhưng
+              trước khi lật, script sẽ _đảm bảo_ lá đã chọn được lật ra (bằng cách trực tiếp flip lá đó hoặc swap nội bộ
+              trước khi reveal).</li>
+            <li>Nếu bật "Ép preset", bạn có thể thử đặt preset và cho thấy preset khác với lựa chọn để kiểm thử (không
+              phải trick thật).</li>
+          </ol>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- reveal modal -->
+  <div id="revealModal" class="reveal-modal" role="dialog" aria-hidden="true">
+    <div class="reveal-card" role="document">
+      <div class="reveal-title">Mình đã đoán...</div>
+      <div id="revealFace" style="font-size:48px; font-weight:900"></div>
+      <div id="revealName" style="margin-top:12px; font-size:20px; font-weight:800"></div>
+      <div style="margin-top:14px">
+        <button id="closeReveal" class="btn ghost">Đóng</button>
+        <button id="againBtn" class="btn">Chơi lại</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      Magic Card Trick (single-file)
+      - 52 lá tạo bởi JS
+      - Khi người chơi click: lưu lá đã chọn (chosenCard)
+      - Khi tráo (fake): chỉ chạy animation, but không thay đổi chosenCard
+      - Khi reveal: lật lá chosenCard (bằng cách thêm class flipped cho card tương ứng)
+      - Có chế độ "force preset" để test non-magic
+    */
+
+    // Utility: tạo bộ bài
+    const SUITS = [
+      { s: '♠', name: 'Spades', color: '#fff' },
+      { s: '♥', name: 'Hearts', color: '#ff385c' },
+      { s: '♦', name: 'Diamonds', color: '#ff7b7b' },
+      { s: '♣', name: 'Clubs', color: '#fff' }
+    ];
+    const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+    function buildDeck() {
+      const deck = [];
+      for (let si = 0; si < SUITS.length; si++) {
+        for (let ri = 0; ri < RANKS.length; ri++) {
+          deck.push({
+            id: `${RANKS[ri]}${SUITS[si].s}`,
+            rank: RANKS[ri],
+            suit: SUITS[si].s,
+            suitName: SUITS[si].name,
+            color: SUITS[si].color
+          });
+        }
+      }
+      return deck;
+    }
+
+    // Global state
+    let deck = buildDeck();
+    let chosenIndex = null;   // index in deck array that player clicked (0..51)
+    let chosenCard = null;    // card object
+    let history = [];         // simple history
+    const cardsArea = document.getElementById('cardsArea');
+    const instruction = document.getElementById('instruction');
+    const chosenInfo = document.getElementById('chosenInfo');
+    const presetSelect = document.getElementById('presetSelect');
+    const forceMode = document.getElementById('forceMode');
+    const explainBtn = document.getElementById('explainBtn');
+    const explainBox = document.getElementById('explainBox');
+    const revealModal = document.getElementById('revealModal');
+    const revealFace = document.getElementById('revealFace');
+    const revealName = document.getElementById('revealName');
+
+    const resetBtn = document.getElementById('resetBtn');
+    const shuffleBtn = document.getElementById('shuffleBtn');
+    const revealBtn = document.getElementById('revealBtn');
+    const historyEl = document.getElementById('history');
+    const chosenClass = 'chosen';
+
+    // render preset options (all 52)
+    function initPresets() {
+      presetSelect.innerHTML = '';
+      deck.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${c.rank}${c.suit} — ${c.suitName}`;
+        presetSelect.appendChild(opt);
+      });
+    }
+
+    // render cards grid
+    function renderGrid() {
+      cardsArea.innerHTML = '';
+      deck.forEach((card, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'card';
+        wrapper.dataset.idx = idx;
+        // inner 3d
+        wrapper.innerHTML = `
+      <div class="card-inner">
+        <div class="card-back front-face">
+          <div style="font-size:14px">♠ ♣ ♥ ♦</div>
+        </div>
+        <div class="card-face back-face">
+          <div class="rank" style="color:${card.color}">${card.rank}</div>
+          <div style="font-size:44px">${card.suit}</div>
+          <div class="suit" style="color:${card.color}">${card.suit}</div>
+        </div>
+      </div>
+    `;
+        // click handler
+        wrapper.addEventListener('click', () => onCardClick(idx, wrapper));
+        cardsArea.appendChild(wrapper);
+      });
+      // responsive: update instruction
+      instruction.textContent = 'Nhấn vào 1 lá bài (mặt sau) để chọn.';
+      chosenInfo.textContent = 'Chưa chọn';
+    }
+
+    // on card click
+    function onCardClick(idx, el) {
+      if (el.classList.contains('locked')) return;
+      // clear previous highlight
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('pulse'));
+      // set chosen
+      chosenIndex = idx;
+      chosenCard = deck[idx];
+      chosenInfo.textContent = `Bạn chọn: ${chosenCard.rank}${chosenCard.suit} (${chosenCard.suitName})`;
+      // visual feedback
+      el.classList.add('pulse');
+      // we keep chosenCard stored; trick will reveal this later
+    }
+
+    // fake shuffle animation
+    function fakeShuffle() {
+      // If no chosen, warn
+      if (chosenCard === null) {
+        alert('Hãy chọn 1 lá trước khi tráo (click 1 lá).');
+        return;
+      }
+      // lock UI (prevent click)
+      lockBoard(true);
+      instruction.textContent = 'Đang tráo (fake shuffle)…';
+      // we will perform a sequence of visual swaps without changing chosenCard reference
+      const cards = Array.from(document.querySelectorAll('.card'));
+      // simple visual shuffle: random translate + z-index change, then back
+      cards.forEach((c, i) => {
+        c.style.transition = 'transform .5s ease, box-shadow .5s ease';
+        const tx = (Math.random() - 0.5) * 40;
+        const ty = (Math.random() - 0.5) * 20;
+        const rot = (Math.random() - 0.5) * 8;
+        c.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+        c.style.zIndex = 100 + Math.floor(Math.random() * 50);
+      });
+      // after initial scatter, bring them back in place with slight shuffle cycles
+      setTimeout(() => {
+        cards.forEach((c, i) => {
+          c.style.transform = '';
+          c.style.zIndex = '';
+        });
+        // small additional cycles to increase misdirection
+        let cycles = 0;
+        const cycle = () => {
+          cycles++;
+          cards.forEach((c, i) => {
+            const tx = (Math.random() - 0.5) * 28;
+            const ty = (Math.random() - 0.5) * 14;
+            const rot = (Math.random() - 0.5) * 6;
+            c.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+          });
+          setTimeout(() => {
+            cards.forEach((c) => c.style.transform = '');
+            if (cycles < 3) setTimeout(cycle, 220);
+            else {
+              // end shuffle
+              setTimeout(() => {
+                instruction.textContent = 'Tráo xong. Bây giờ bạn có thể "Lật ra".';
+                lockBoard(false);
+              }, 260);
+            }
+          }, 220);
+        };
+        setTimeout(cycle, 180);
+      }, 500);
+    }
+
+    // lock/unlock board
+    function lockBoard(lock) {
+      document.querySelectorAll('.card').forEach(c => {
+        if (lock) c.classList.add('locked'); else c.classList.remove('locked');
+      });
+      if (lock) {
+        shuffleBtn.disabled = true; revealBtn.disabled = true; resetBtn.disabled = true;
+      } else {
+        shuffleBtn.disabled = false; revealBtn.disabled = false; resetBtn.disabled = false;
+      }
+    }
+
+    // reveal chosen card
+    function revealChosen() {
+      // if none chosen, allow picking random
+      if (chosenCard === null && !forceMode.checked) {
+        const pick = Math.floor(Math.random() * deck.length);
+        chosenIndex = pick;
+        chosenCard = deck[pick];
+        chosenInfo.textContent = `Hệ thống chọn ngẫu nhiên: ${chosenCard.rank}${chosenCard.suit}`;
+      }
+      // If force mode, use preset
+      if (forceMode.checked) {
+        const presetIdx = Number(presetSelect.value);
+        chosenIndex = presetIdx;
+        chosenCard = deck[chosenIndex];
+        chosenInfo.textContent = `Chế độ Ép: dự đoán = ${chosenCard.rank}${chosenCard.suit}`;
+      }
+      // Lock UI during reveal
+      lockBoard(true);
+      instruction.textContent = 'Đang reveal...';
+      // visually flip the chosen card and show modal with large face
+      const cardEl = document.querySelector(`.card[data-idx="${chosenIndex}"]`);
+      if (!cardEl) {
+        alert('Lỗi: không tìm thấy lá đã chọn.');
+        lockBoard(false);
+        return;
+      }
+      // Ensure only chosen flips visually, others remain
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('flipped'));
+      setTimeout(() => {
+        // flip chosen
+        cardEl.classList.add('flipped');
+        // show modal after short delay
+        setTimeout(() => {
+          showRevealModal(chosenCard);
+          // update history
+          history.unshift(`${chosenCard.rank}${chosenCard.suit}`);
+          if (history.length > 8) history.pop();
+          renderHistory();
+          lockBoard(false);
+          instruction.textContent = 'Hoàn tất — bạn có thể chơi lại.';
+        }, 520);
+      }, 120);
+    }
+
+    // render history
+    function renderHistory() {
+      historyEl.textContent = history.length ? history.join(' • ') : '—';
+    }
+
+    // show modal with big card face
+    function showRevealModal(card) {
+      revealFace.textContent = card.suit;
+      revealFace.style.color = card.color;
+      revealName.textContent = `${card.rank} ${card.suitName}`;
+      revealModal.classList.add('show');
+      revealModal.setAttribute('aria-hidden', 'false');
+    }
+
+    // hide modal
+    function hideRevealModal() {
+      revealModal.classList.remove('show');
+      revealModal.setAttribute('aria-hidden', 'true');
+    }
+
+    // reset game
+    function resetGame() {
+      // clear chosen, unflip all cards
+      chosenIndex = null; chosenCard = null;
+      document.querySelectorAll('.card').forEach(c => {
+        c.classList.remove('flipped', 'pulse');
+        c.style.transform = '';
+      });
+      chosenInfo.textContent = 'Chưa chọn';
+      instruction.textContent = 'Chọn 1 lá bài (click) để bắt đầu';
+    }
+
+    // event bindings
+    document.getElementById('shuffleBtn').addEventListener('click', fakeShuffle);
+    document.getElementById('revealBtn').addEventListener('click', revealChosen);
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    document.getElementById('explainBtn').addEventListener('click', () => {
+      explainBox.style.display = explainBox.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // close modal
+    document.getElementById('closeReveal').addEventListener('click', hideRevealModal);
+    document.getElementById('againBtn').addEventListener('click', () => {
+      hideRevealModal();
+      resetGame();
+    });
+
+    // keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') resetGame();
+      if (e.key === 's' || e.key === 'S') fakeShuffle();
+      if (e.key === 'Enter') revealChosen();
+      if (e.key === 'Escape') hideRevealModal();
+    });
+
+    // initial render
+    initPresets();
+    renderGrid();
+    renderHistory();
+
+    // Accessibility note: if user selects card then presses reveal quickly it works.
+    // If user wants to see explanation, toggle "Giải thích".
+
+  </script>
+</body>
+
+</html>

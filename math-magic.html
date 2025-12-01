@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Math Magic — 1089 & 6174</title>
+  <style>
+    :root {
+      --bg1: #0f1724;
+      --bg2: #071233;
+      --card: #0b1220;
+      --accent: #ff6b6b;
+      --muted: #9aa4b2;
+      --glass: rgba(255, 255, 255, 0.04);
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, Arial;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: #e6eef8
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 28px auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 20px;
+    }
+
+    @media(max-width:980px) {
+      .wrap {
+        grid-template-columns: 1fr;
+        padding: 12px
+      }
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 20px
+    }
+
+    p.lead {
+      margin: 0 0 14px;
+      color: var(--muted)
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px
+    }
+
+    .input {
+      background: var(--card);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      color: inherit
+    }
+
+    input[type="text"] {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: inherit;
+      font-size: 1rem;
+      width: 160px
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06)
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .log {
+      max-height: 480px;
+      overflow: auto;
+      padding: 10px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.005));
+      border-radius: 8px;
+      border: 1px dashed rgba(255, 255, 255, 0.02);
+    }
+
+    .step-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.005), transparent)
+    }
+
+    .bignum {
+      font-size: 28px;
+      font-weight: 800;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      min-width: 120px;
+      text-align: center
+    }
+
+    .muted {
+      color: var(--muted)
+    }
+
+    .explain {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 12px
+    }
+
+    .result-badge {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 10px;
+      background: linear-gradient(90deg, rgba(78, 205, 196, 0.08), rgba(255, 107, 107, 0.06));
+      font-weight: 800;
+      color: #fff;
+      text-align: center
+    }
+
+    .controls-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .radio-row {
+      display: flex;
+      gap: 10px;
+      align-items: center
+    }
+
+    .chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--glass);
+      border: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .footer-note {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%
+    }
+
+    .success {
+      background: #4ecdc4
+    }
+
+    .danger {
+      background: #ff6b6b
+    }
+
+    .kbd {
+      background: #061129;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      border: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    /* simple animation */
+    .pulse {
+      animation: pulse 900ms ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1)
+      }
+
+      50% {
+        transform: scale(1.06)
+      }
+
+      100% {
+        transform: scale(1)
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Math Magic — 1089 &amp; 6174</h1>
+      <p class="lead">Chọn phép ảo thuật, nhập số theo yêu cầu, và xem từng bước để luôn nhận được <strong>1089</strong>
+        (3 chữ số) hoặc <strong>6174</strong> (4 chữ số).</p>
+
+      <div class="controls">
+        <div class="controls-col">
+          <div class="radio-row">
+            <label><input type="radio" name="mode" value="1089" checked> <span class="small">1089 Trick (3 chữ
+                số)</span></label>
+            <label style="margin-left:6px"><input type="radio" name="mode" value="6174"> <span class="small">6174
+                (Kaprekar) — 4 chữ số</span></label>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:8px; align-items:center">
+            <div class="input chip">
+              <label class="small muted">Số nhập:</label>
+              <input id="numInput" type="text" placeholder="vd: 421 (3 chữ số)" />
+            </div>
+            <button id="startBtn" class="btn">Bắt đầu</button>
+            <button id="stepBtn" class="btn ghost">Bước tiếp</button>
+            <button id="autoBtn" class="btn ghost">Tự chạy</button>
+            <button id="resetBtn" class="btn ghost">Reset</button>
+          </div>
+        </div>
+
+        <div style="margin-left:auto; text-align:right">
+          <div class="chip">Chế độ: <span id="modeLabel" class="muted">1089</span></div>
+          <div class="chip" style="margin-top:8px">Auto speed:
+            <select id="speedSelect" class="input" style="margin-left:8px">
+              <option value="800">Chậm</option>
+              <option value="450" selected>Trung bình</option>
+              <option value="180">Nhanh</option>
+            </select>
+          </div>
+          <div class="chip" style="margin-top:8px">Auto iterations:
+            <input id="autoIter" type="number" value="10" min="1" max="100" style="width:64px;margin-left:8px" />
+          </div>
+        </div>
+      </div>
+
+      <div class="log" id="log">
+        <div style="display:flex; gap:12px; align-items:center; margin-bottom:8px">
+          <div class="bignum" id="currentNum">—</div>
+          <div style="flex:1">
+            <div class="small muted">Trạng thái</div>
+            <div id="statusText">Chưa bắt đầu</div>
+          </div>
+        </div>
+        <div id="stepsContainer"></div>
+      </div>
+
+      <div class="explain" id="explain">
+        <strong>Giải thích ngắn:</strong>
+        <div id="explainText">Chọn 1 phép để xem lý do toán học phía sau. 1089 dùng phương pháp đảo &amp; cộng; 6174 là
+          hằng số Kaprekar với lặp arrange/subtract.</div>
+      </div>
+    </div>
+
+    <aside class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <div>
+          <div class="small muted">Kết quả</div>
+          <div id="resultBox" class="result-badge">Chưa có kết quả</div>
+        </div>
+        <div style="text-align:right">
+          <div class="small muted">Phím tắt</div>
+          <div style="margin-top:6px">
+            <span class="kbd">Enter</span> Bắt đầu &nbsp; <span class="kbd">Space</span> Bước tiếp
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <h3 style="margin:0 0 6px">Mô tả từng trick</h3>
+        <div class="small muted">
+          <strong>1089 Trick:</strong> Nhập số 3 chữ số (3 chữ số khác nhau không hoàn toàn giống). Quy trình: đảo → trừ
+          → đảo → cộng → kết quả luôn 1089.<br><br>
+          <strong>6174 — Kaprekar:</strong> Nhập số 4 chữ số (không tất cả 4 chữ số giống nhau). Mỗi bước: sắp xếp giảm
+          → sắp xếp tăng → trừ → lặp lại → dừng ở 6174.
+        </div>
+
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+          <button id="explainBtn" class="btn ghost">Hiểu thêm</button>
+          <button id="copySteps" class="btn ghost">Sao chép log</button>
+        </div>
+
+        <div class="footer-note">Mẹo: Nếu kết quả không đúng, đổi số nhập cho hợp lệ. 1089 yêu cầu ít nhất 2 chữ số khác
+          nhau; 6174 yêu cầu không phải bốn chữ số giống nhau.</div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    /* Math Magic — 1089 & 6174
+       Các chức năng:
+       - chọn mode (1089 / 6174)
+       - nhập số, validate
+       - step-by-step hoặc auto-run (animated)
+       - hiển thị log từng bước
+    */
+
+    // Helpers
+    const $ = id => document.getElementById(id);
+    const pad = (n, len) => n.toString().padStart(len, '0');
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    let mode = '1089';
+    let current = null;
+    let steps = [];
+    let autoRunning = false;
+    let stepIndex = 0;
+
+    const statusText = $('statusText'), currentNum = $('currentNum'), stepsContainer = $('stepsContainer');
+    const resultBox = $('resultBox'), modeLabel = $('modeLabel');
+    const startBtn = $('startBtn'), stepBtn = $('stepBtn'), autoBtn = $('autoBtn'), resetBtn = $('resetBtn');
+    const numInput = $('numInput'), speedSelect = $('speedSelect'), autoIter = $('autoIter');
+    const explainBtn = $('explainBtn'), copySteps = $('copySteps');
+
+    function setStatus(t) { statusText.textContent = t; }
+    function setCurrentDisplay(n) { currentNum.textContent = n; }
+
+    document.querySelectorAll('input[name="mode"]').forEach(r => {
+      r.addEventListener('change', e => {
+        mode = e.target.value;
+        modeLabel.textContent = mode;
+        resetAll();
+        if (mode === '1089') {
+          numInput.placeholder = 'vd: 421 (3 chữ số)';
+          $('explainText').innerText = '1089: Nhập số 3 chữ số (không quá giống nhau). Quy trình đảo → trừ → đảo → cộng sẽ cho 1089.';
+        } else {
+          numInput.placeholder = 'vd: 3524 (4 chữ số)';
+          $('explainText').innerText = '6174 (Kaprekar): Nhập số 4 chữ số (không phải 4 chữ số giống nhau). Lặp arrange/subtract để đạt 6174.';
+        }
+      });
+    });
+
+    function resetAll() {
+      autoRunning = false; stepIndex = 0; steps = []; current = null;
+      stepsContainer.innerHTML = ''; setStatus('Chưa bắt đầu'); setCurrentDisplay('—'); resultBox.textContent = 'Chưa có kết quả'; resultBox.classList.remove('pulse');
+    }
+
+    // Validation
+    function validateInput(str) {
+      if (!str) return { ok: false, msg: 'Vui lòng nhập số.' };
+      if (!/^\d+$/.test(str)) return { ok: false, msg: 'Chỉ nhập chữ số 0-9.' };
+      if (mode === '1089') {
+        if (str.length !== 3) return { ok: false, msg: 'Yêu cầu số có 3 chữ số.' };
+        const allSame = new Set(str.split('')).size === 1;
+        if (allSame) return { ok: false, msg: 'Không nhận số có cả 3 chữ số giống nhau.' };
+      } else {
+        if (str.length !== 4) return { ok: false, msg: 'Yêu cầu số có 4 chữ số.' };
+        const allSame = new Set(str.split('')).size === 1;
+        if (allSame) return { ok: false, msg: 'Không nhận số có 4 chữ số giống nhau.' };
+      }
+      return { ok: true };
+    }
+
+    // Numeric ops
+    function reverseStr(s) { return s.split('').reverse().join(''); }
+
+    function prepare1089Steps(nStr) {
+      // ensure 3 digits
+      let s = pad(Number(nStr), 3);
+      const stepsLocal = [];
+      // step 1: reverse
+      const rev = reverseStr(s);
+      stepsLocal.push({ type: 'reverse', a: s, b: rev });
+      // choose larger - smaller
+      const A = Math.max(Number(s), Number(rev));
+      const B = Math.min(Number(s), Number(rev));
+      const sub = A - B;
+      const subPad = pad(sub, 3);
+      stepsLocal.push({ type: 'subtract', a: pad(A, 3), b: pad(B, 3), res: subPad });
+      // reverse result
+      const rev2 = reverseStr(subPad);
+      stepsLocal.push({ type: 'reverse', a: subPad, b: rev2 });
+      // add
+      const sum = Number(subPad) + Number(rev2);
+      stepsLocal.push({ type: 'add', a: subPad, b: rev2, res: pad(sum, 3) });
+      return stepsLocal;
+    }
+
+    function prepare6174Steps(nStr) {
+      // ensure 4 digits padded
+      let s = pad(Number(nStr), 4);
+      const stepsLocal = [];
+      // We'll produce iterative steps until 6174 or stuck (max 12 iterations)
+      let currentNum = s;
+      for (let iter = 0; iter < 12; iter++) {
+        const desc = currentNum.split('').slice().sort((a, b) => b.localeCompare(a)).join(''); // descending
+        const asc = currentNum.split('').slice().sort((a, b) => a.localeCompare(b)).join('');
+        const res = pad(Number(desc) - Number(asc), 4);
+        stepsLocal.push({ type: 'kapStep', iter: iter + 1, desc, asc, res });
+        currentNum = res;
+        if (currentNum === '6174') break;
+        // break if loops to same number (should not except trivial)
+      }
+      return stepsLocal;
+    }
+
+    // Rendering a step with animation
+    function renderStep(step, index) {
+      const el = document.createElement('div');
+      el.className = 'step-row';
+      if (step.type === 'reverse') {
+        el.innerHTML = `<div class="bignum">${step.a}</div>
+                    <div style="flex:1"><div class="muted">Đảo chữ số →</div><div style="font-weight:700">${step.b}</div></div>`;
+      } else if (step.type === 'subtract') {
+        el.innerHTML = `<div class="bignum">${step.a}</div>
+                    <div style="flex:1">
+                      <div class="muted">Trừ: <strong>${step.a} - ${step.b}</strong></div>
+                      <div style="font-weight:700">${step.res}</div>
+                    </div>`;
+      } else if (step.type === 'add') {
+        el.innerHTML = `<div class="bignum">${step.a}</div>
+                    <div style="flex:1">
+                      <div class="muted">Cộng đảo: <strong>${step.a} + ${step.b}</strong></div>
+                      <div style="font-weight:700">${step.res}</div>
+                    </div>`;
+      } else if (step.type === 'kapStep') {
+        el.innerHTML = `<div class="bignum">${step.desc}</div>
+                    <div style="flex:1">
+                      <div class="muted">Bước ${step.iter}: ${step.desc} - ${step.asc}</div>
+                      <div style="font-weight:700">${step.res}</div>
+                    </div>`;
+      }
+      stepsContainer.appendChild(el);
+      // small pulse animation
+      setTimeout(() => el.classList.add('pulse'), 10);
+      setTimeout(() => el.classList.remove('pulse'), 800);
+    }
+
+    // Run logic: prepare steps and allow step-through or auto
+    async function runFromInput(auto = false) {
+      const input = numInput.value.trim();
+      const v = validateInput(input);
+      if (!v.ok) { alert(v.msg); return; }
+      resetStepsArea();
+      setStatus('Chuẩn bị các bước...');
+      stepIndex = 0;
+      if (mode === '1089') {
+        steps = prepare1089Steps(input);
+        setCurrentDisplay(pad(Number(input), 3));
+        setStatus('Đang thực hiện 1089 trick...');
+        if (auto) await autoRunSteps();
+      } else {
+        steps = prepare6174Steps(input);
+        setCurrentDisplay(pad(Number(input), 4));
+        setStatus('Đang thực hiện Kaprekar (6174)...');
+        if (auto) await autoRunSteps();
+      }
+      if (!auto) setStatus('Sẵn sàng bước tiếp (nhấn Bước tiếp hoặc Space).');
+    }
+
+    // Reset steps view
+    function resetStepsArea() {
+      stepsContainer.innerHTML = '';
+      resultBox.textContent = 'Chưa có kết quả';
+    }
+
+    // auto-run all steps with timing
+    async function autoRunSteps() {
+      autoRunning = true;
+      const sp = parseInt(speedSelect.value, 10) || 450;
+      for (; stepIndex < steps.length; stepIndex++) {
+        renderStep(steps[stepIndex], stepIndex);
+        // update current display based on step
+        const s = steps[stepIndex];
+        if (s.type === 'reverse' && s.b) setCurrentDisplay(s.b);
+        if (s.type === 'subtract' && s.res) setCurrentDisplay(s.res);
+        if (s.type === 'add' && s.res) setCurrentDisplay(s.res);
+        if (s.type === 'kapStep' && s.res) setCurrentDisplay(s.res);
+        await sleep(sp);
+      }
+      autoRunning = false;
+      finalizeResult();
+    }
+
+    // step one step
+    function stepOnce() {
+      if (autoRunning) return;
+      if (!steps || steps.length === 0) { alert('Chưa có steps — nhấn Bắt đầu trước.'); return; }
+      if (stepIndex >= steps.length) { finalizeResult(); return; }
+      renderStep(steps[stepIndex], stepIndex);
+      const s = steps[stepIndex];
+      if (s.type === 'reverse' && s.b) setCurrentDisplay(s.b);
+      if (s.type === 'subtract' && s.res) setCurrentDisplay(s.res);
+      if (s.type === 'add' && s.res) setCurrentDisplay(s.res);
+      if (s.type === 'kapStep' && s.res) setCurrentDisplay(s.res);
+      stepIndex++;
+      if (stepIndex >= steps.length) finalizeResult(); else setStatus('Bước ' + stepIndex + ' hoàn tất.');
+    }
+
+    // finalize: show final result and explanation
+    function finalizeResult() {
+      if (!steps || steps.length === 0) return;
+      const last = steps[steps.length - 1];
+      const final = (last.res || last.b || last.a);
+      resultBox.textContent = `Kết quả cuối: ${final}`;
+      resultBox.classList.add('pulse');
+      setStatus('Hoàn thành — xem kết quả phía trên.');
+      // show small explanation pop or highlight
+    }
+
+    // Buttons
+    startBtn.addEventListener('click', () => runFromInput(false));
+    stepBtn.addEventListener('click', stepOnce);
+    autoBtn.addEventListener('click', async () => {
+      // if not prepared, prepare and auto
+      if (!steps || steps.length === 0) { await runFromInput(true); return; }
+      if (!autoRunning) await autoRunSteps();
+    });
+    resetBtn.addEventListener('click', resetAll);
+
+    // keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); runFromInput(false); }
+      if (e.code === 'Space') { e.preventDefault(); stepOnce(); }
+    });
+
+    // explain modal (simple alert)
+    explainBtn.addEventListener('click', () => {
+      if (mode === '1089') {
+        alert('1089 trick: với số 3 chữ số (không giống nhau hoàn toàn), thao tác đảo-chữ số và cộng sẽ luôn dẫn đến 1089. Đây là hệ quả của toán học cơ bản trên cơ số 10 (tham số hóa vị trí hàng trăm, hàng chục, hàng đơn vị).');
+      } else {
+        alert('Kaprekar 6174: bắt đầu từ một số 4 chữ số (không bằng nhau hoàn toàn), sắp xếp các chữ số giảm dần và tăng dần rồi lấy hiệu, lặp lại — trong tối đa vài bước sẽ đạt 6174 (hằng số Kaprekar).');
+      }
+    });
+
+    // copy log
+    copySteps.addEventListener('click', () => {
+      const text = Array.from(stepsContainer.children).map(n => n.innerText).join('\\n');
+      navigator.clipboard?.writeText(text).then(() => alert('Đã sao chép log ra clipboard.'), () => alert('Không thể sao chép.'));
+    });
+
+    // init
+    resetAll();
+
+  </script>
+</body>
+
+</html>

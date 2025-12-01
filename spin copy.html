@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vòng Quay May Mắn - Lucky Spin</title>
+  <title>Vòng Quay Tên Ngẫu Nhiên</title>
   <style>
     :root {
       --primary: #ff4757;
@@ -37,33 +37,6 @@
       color: var(--primary);
       text-transform: uppercase;
       text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Tabs */
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      background: #e1e1e1;
-      padding: 5px;
-      border-radius: 10px;
-    }
-
-    .tab-btn {
-      padding: 10px 20px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-weight: bold;
-      color: #666;
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      background: white;
-      color: var(--primary);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     /* Container chính */
@@ -201,40 +174,6 @@
       padding-bottom: 10px;
     }
 
-    .prize-list {
-      list-style: none;
-      margin-bottom: 20px;
-    }
-
-    .prize-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      background: #f8f9fa;
-      margin-bottom: 8px;
-      border-radius: 6px;
-      border-left: 5px solid #ccc;
-    }
-
-    .prize-info {
-      flex: 1;
-    }
-
-    .prize-title {
-      font-weight: bold;
-    }
-
-    .prize-weight {
-      font-size: 0.85em;
-      color: #666;
-    }
-
-    .prize-actions {
-      display: flex;
-      gap: 5px;
-    }
-
     .btn-sm {
       padding: 5px 10px;
       font-size: 12px;
@@ -252,15 +191,6 @@
       font-weight: 600;
     }
 
-    input[type="text"],
-    input[type="number"],
-    input[type="color"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-    }
-
     textarea {
       width: 100%;
       padding: 10px;
@@ -269,11 +199,6 @@
       min-height: 150px;
       font-family: inherit;
       resize: vertical;
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
     }
 
     /* Modal */
@@ -331,17 +256,6 @@
       margin-bottom: 20px;
     }
 
-    .coupon-code {
-      background: #eee;
-      padding: 10px;
-      border-radius: 6px;
-      font-family: monospace;
-      font-size: 18px;
-      margin-bottom: 20px;
-      cursor: pointer;
-      border: 1px dashed #999;
-    }
-
     /* Toast */
     .toast {
       position: fixed;
@@ -395,11 +309,8 @@
 </head>
 
 <body>
-  <h1>Vòng Quay May Mắn</h1>
-  <div class="tabs">
-    <!-- <button class="tab-btn active" onclick="switchMode('prize')" id="tabPrize">🎁 Vòng quay giải thưởng</button> -->
-    <button class="tab-btn" onclick="switchMode('name')" id="tabName">🎲 Quay tên ngẫu nhiên</button>
-  </div>
+  <h1>Vòng Quay Tên Ngẫu Nhiên</h1>
+
   <div class="main-container">
     <!-- Khu vực vòng quay -->
     <div class="wheel-section">
@@ -412,66 +323,11 @@
         <button id="toggleSoundBtn">🔊 Bật âm thanh</button>
         <button id="autoSpinBtn">🔄 Quay tự động</button>
       </div>
-      <!-- <div style="margin-top: 10px; font-size: 0.9em; color: #666;">
-        <label><input type="checkbox" id="riggedMode"> Chế độ Debug (Rigged)</label>
-        <select id="riggedIndex" disabled style="margin-left: 5px; padding: 2px;">
-        </select>
-      </div> -->
     </div>
-    <!-- Khu vực Admin -->
+
+    <!-- Khu vực Admin (Chỉ còn Name Mode) -->
     <div class="admin-panel">
-      <!-- PRIZE MODE CONTENT -->
-      <div id="prizeModeContent">
-        <div class="admin-header">
-          <h2>Quản lý giải thưởng</h2>
-          <div>
-            <button class="btn-sm" id="exportBtn">⬇ Export</button>
-            <button class="btn-sm" id="importBtn" onclick="document.getElementById('fileInput').click()">⬆
-              Import</button>
-            <input type="file" id="fileInput" style="display: none" accept=".json">
-          </div>
-        </div>
-        <ul class="prize-list" id="prizeList">
-          <!-- Items rendered here -->
-        </ul>
-        <div class="edit-form">
-          <h3>Thêm / Sửa giải thưởng</h3>
-          <input type="hidden" id="editId">
-          <div class="form-group">
-            <label>Tên giải (*)</label>
-            <input type="text" id="editTitle" placeholder="Ví dụ: Voucher 100k">
-          </div>
-          <div class="row">
-            <div class="form-group" style="flex: 1">
-              <label>Màu sắc</label>
-              <input type="color" id="editColor" value="#ff4757">
-            </div>
-            <div class="form-group" style="flex: 1">
-              <label>Trọng số (Weight)</label>
-              <input type="number" id="editWeight" value="1" min="1">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Icon (Emoji/Text)</label>
-            <input type="text" id="editIcon" placeholder="🎁">
-          </div>
-          <div class="form-group">
-            <label>Mô tả / Mã Coupon</label>
-            <input type="text" id="editDesc" placeholder="Nhập mã hoặc mô tả...">
-          </div>
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="primary" id="savePrizeBtn" style="flex: 1">Lưu mục này</button>
-            <button id="clearFormBtn">Hủy</button>
-          </div>
-        </div>
-        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
-          <button class="accent" id="saveAllBtn" style="width: 100%">💾 Lưu cấu hình & Áp dụng</button>
-          <button id="resetDefaultBtn" style="width: 100%; margin-top: 10px; background: #ff6b6b;">⚠ Reset mặc
-            định</button>
-        </div>
-      </div>
-      <!-- NAME MODE CONTENT -->
-      <div id="nameModeContent" style="display: none;">
+      <div id="nameModeContent">
         <div class="admin-header">
           <h2>Nhập danh sách tên</h2>
         </div>
@@ -479,10 +335,8 @@
           <label>Nhập tên (mỗi tên một dòng):</label>
           <textarea id="nameInput" placeholder="Nguyễn Văn A&#10;Trần Thị B&#10;Lê Văn C"></textarea>
         </div>
-        <div class="form-group">
-          <label><input type="checkbox" id="removeWinner" checked> Xóa người trúng khỏi danh sách sau khi quay</label>
-        </div>
         <button class="primary" id="updateNameWheelBtn" style="width: 100%">Cập nhật vòng quay</button>
+
         <div style="margin-top: 20px;">
           <h3>Lịch sử quay</h3>
           <ul class="history-list" id="historyList">
@@ -493,76 +347,69 @@
       </div>
     </div>
   </div>
+
   <!-- Modal Kết Quả -->
   <div class="modal-overlay" id="resultModal">
     <div class="modal-content">
       <span class="winner-icon" id="modalIcon">🎉</span>
       <h2 class="winner-title" id="modalTitle">Chúc mừng!</h2>
-      <p class="winner-desc" id="modalDesc">Bạn đã trúng giải thưởng lớn.</p>
-      <div id="couponContainer" style="display: none;">
-        <div class="coupon-code" id="couponCode" title="Click để copy">CODE123</div>
-        <p style="font-size: 0.8em; color: #888;">(Click vào mã để copy)</p>
+      <p class="winner-desc" id="modalDesc">Người thắng cuộc</p>
+
+      <!-- Buttons for Name Mode -->
+      <div id="nameModeButtons" style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="primary" id="keepWinnerBtn" style="flex: 1; background: #7bed9f; color: #2f3542;">Giữ
+          lại</button>
+        <button class="primary" id="removeWinnerBtn" style="flex: 1; background: #ff6b6b;">Xóa tên này</button>
       </div>
-      <button class="primary" id="closeModalBtn" style="margin-top: 20px; width: 100%;">Tuyệt vời!</button>
     </div>
   </div>
+
   <!-- Toast Notification -->
   <div class="toast" id="toast">Thông báo</div>
+
   <script>
     /**
-     * LUCKY SPIN APP
+     * RANDOM NAME PICKER APP
      */
-    // --- DEFAULT DATA ---
-    const DEFAULT_PRIZES = [
-      { id: 1, title: "Chúc may mắn", color: "#a4b0be", weight: 5, icon: "😢", description: "Thử lại lần sau nhé!" },
-      { id: 2, title: "100 Điểm", color: "#7bed9f", weight: 3, icon: "💎", description: "Cộng 100 điểm vào tài khoản" },
-      { id: 3, title: "Voucher 10%", color: "#70a1ff", weight: 2, icon: "🎟", description: "Mã: SALE10" },
-      { id: 4, title: "Voucher 20%", color: "#5352ed", weight: 1, icon: "🎫", description: "Mã: SALE20" },
-      { id: 5, title: "Quà bí mật", color: "#ff6b81", weight: 1, icon: "🎁", description: "Liên hệ admin để nhận quà" },
-      { id: 6, title: "Thêm lượt", color: "#eccc68", weight: 2, icon: "🔄", description: "Bạn được quay thêm 1 lần" }
-    ];
+
     // --- STATE ---
-    let prizes = [];
-    let nameList = []; // For Name Mode
-    let history = []; // For Name Mode History
-    let currentMode = 'prize'; // 'prize' or 'name'
+    let nameList = [];
+    let history = [];
+    let currentWinner = null;
+
     let isSpinning = false;
     let currentRotation = 0;
     let soundEnabled = true;
     let audioCtx = null;
+
     // --- DOM ELEMENTS ---
     const canvas = document.getElementById('wheelCanvas');
     const ctx = canvas.getContext('2d');
     const spinBtn = document.getElementById('spinBtn');
-    const prizeListEl = document.getElementById('prizeList');
     const modal = document.getElementById('resultModal');
+
     // --- INITIALIZATION ---
     function init() {
       loadData();
-      drawWheel();
+      // If no data, set some defaults for demo
+      if (nameList.length === 0) {
+        document.getElementById('nameInput').value = "Nguyễn Văn A\nTrần Thị B\nLê Văn C\nPhạm Thị D\nHoàng Văn E";
+        parseNames();
+      } else {
+        drawWheel();
+      }
       setupEventListeners();
-      updateAdminUI();
-      updateRiggedOptions();
     }
+
     // --- DATA MANAGEMENT ---
     function loadData() {
-      // Load Prizes
-      const saved = localStorage.getItem('lucky_spin_v1');
-      if (saved) {
-        try {
-          prizes = JSON.parse(saved);
-        } catch (e) {
-          prizes = JSON.parse(JSON.stringify(DEFAULT_PRIZES));
-        }
-      } else {
-        prizes = JSON.parse(JSON.stringify(DEFAULT_PRIZES));
-      }
       // Load Names
       const savedNames = localStorage.getItem('lucky_spin_names');
       if (savedNames) {
         document.getElementById('nameInput').value = savedNames;
         parseNames();
       }
+
       // Load History
       const savedHistory = localStorage.getItem('lucky_spin_history');
       if (savedHistory) {
@@ -570,38 +417,15 @@
         updateHistoryUI();
       }
     }
-    function saveData() {
-      localStorage.setItem('lucky_spin_v1', JSON.stringify(prizes));
-      showToast("Đã lưu dữ liệu thành công!");
-      drawWheel();
-      updateAdminUI();
-      updateRiggedOptions();
-    }
-    function resetToDefault() {
-      if (confirm("Bạn có chắc muốn reset về mặc định? Dữ liệu hiện tại sẽ mất.")) {
-        prizes = JSON.parse(JSON.stringify(DEFAULT_PRIZES));
-        saveData();
-      }
-    }
-    // --- MODE SWITCHING ---
-    function switchMode(mode) {
-      currentMode = mode;
-      // Update Tabs
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(mode === 'prize' ? 'tabPrize' : 'tabName').classList.add('active');
-      // Update Content
-      document.getElementById('prizeModeContent').style.display = mode === 'name' ? 'block' : 'none';
-      document.getElementById('nameModeContent').style.display = mode === 'prize' ? 'block' : 'none';
-      // Redraw Wheel
-      drawWheel();
-      updateRiggedOptions();
-    }
+
     // --- NAME PICKER LOGIC ---
     function parseNames() {
       const input = document.getElementById('nameInput').value;
       const lines = input.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
       // Generate colors
       const colors = ['#ff4757', '#2ed573', '#1e90ff', '#ffa502', '#ff6b81', '#7bed9f', '#70a1ff', '#5352ed'];
+
       nameList = lines.map((name, index) => ({
         id: index,
         title: name,
@@ -610,10 +434,11 @@
         icon: '👤',
         description: 'Người thắng cuộc'
       }));
+
       localStorage.setItem('lucky_spin_names', input);
       drawWheel();
-      updateRiggedOptions();
     }
+
     function updateHistoryUI() {
       const list = document.getElementById('historyList');
       list.innerHTML = '';
@@ -624,9 +449,24 @@
         list.appendChild(li);
       });
     }
+
+    function removeCurrentWinner() {
+      if (!currentWinner) return;
+
+      const input = document.getElementById('nameInput');
+      const lines = input.value.split('\n').map(l => l.trim());
+      const newLines = lines.filter(l => l !== currentWinner.title);
+      input.value = newLines.join('\n');
+
+      parseNames();
+      showToast(`Đã xóa "${currentWinner.title}" khỏi danh sách`);
+      modal.classList.remove('active');
+    }
+
     // --- WHEEL RENDERING ---
     function drawWheel() {
-      const data = currentMode === 'prize' ? prizes : nameList;
+      const data = nameList;
+
       if (data.length === 0) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.font = "20px Arial";
@@ -635,14 +475,19 @@
         ctx.fillText("Chưa có dữ liệu", canvas.width / 2, canvas.height / 2);
         return;
       }
+
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const radius = canvas.width / 2 - 10;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       const totalWeight = data.reduce((sum, p) => sum + p.weight, 0);
       let currentAngle = 0;
+
       data.forEach(prize => {
         const sliceAngle = (prize.weight / totalWeight) * 2 * Math.PI;
+
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
@@ -650,6 +495,7 @@
         ctx.fillStyle = prize.color;
         ctx.fill();
         ctx.stroke();
+
         ctx.save();
         ctx.translate(centerX, centerY);
         ctx.rotate(currentAngle + sliceAngle / 2);
@@ -658,78 +504,84 @@
         ctx.font = "bold 18px Arial";
         ctx.shadowColor = "rgba(0,0,0,0.5)";
         ctx.shadowBlur = 4;
+
         let text = prize.title;
         if (text.length > 15) text = text.substring(0, 12) + "...";
         ctx.fillText(text, radius - 20, 5);
-        if (prize.icon && currentMode === 'prize') {
-          ctx.font = "24px Arial";
-          ctx.fillText(prize.icon, radius - 150, 8);
-        }
+
         ctx.restore();
         currentAngle += sliceAngle;
       });
+
       ctx.beginPath();
       ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
       ctx.fillStyle = "#fff";
       ctx.fill();
       ctx.stroke();
     }
+
     // --- SPIN LOGIC ---
     function spin() {
       if (isSpinning) return;
-      const data = currentMode === 'prize' ? prizes : nameList;
+      const data = nameList;
+
       if (data.length < 2) {
         alert("Cần ít nhất 2 mục để quay!");
         return;
       }
+
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
+
       isSpinning = true;
       spinBtn.disabled = true;
       playSound("spin");
+
       let winnerIndex = -1;
-      const riggedCheckbox = document.getElementById('riggedMode');
-      const riggedSelect = document.getElementById('riggedIndex');
-      if (riggedCheckbox.checked && riggedSelect.value !== "") {
-        winnerIndex = parseInt(riggedSelect.value);
-      } else {
-        const totalWeight = data.reduce((sum, p) => sum + p.weight, 0);
-        let random = Math.random() * totalWeight;
-        for (let i = 0; i < data.length; i++) {
-          if (random < data[i].weight) {
-            winnerIndex = i;
-            break;
-          }
-          random -= data[i].weight;
-        }
-      }
+
+      // Random selection
       const totalWeight = data.reduce((sum, p) => sum + p.weight, 0);
-      let startWeight = 0;
-      for (let i = 0; i < winnerIndex; i++) startWeight += data[i].weight;
+      let random = Math.random() * totalWeight;
+      for (let i = 0; i < data.length; i++) {
+        if (random < data[i].weight) {
+          winnerIndex = i;
+          break;
+        }
+        random -= data[i].weight;
+      }
+
+      const startWeight = data.slice(0, winnerIndex).reduce((sum, p) => sum + p.weight, 0);
+
       const sliceAngle = (data[winnerIndex].weight / totalWeight) * 360;
       const startAngle = (startWeight / totalWeight) * 360;
       const centerAngle = startAngle + sliceAngle / 2;
+
       const minSpins = 5;
       const baseRotation = 360 * minSpins;
+
       let targetRotation = 270 - centerAngle;
       while (targetRotation < currentRotation + baseRotation) {
         targetRotation += 360;
       }
       const randomOffset = (Math.random() - 0.5) * (sliceAngle * 0.8);
       targetRotation += randomOffset;
+
       const duration = 5000;
       const startTime = performance.now();
       const startRotation = currentRotation;
+
       function animate(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         const ease = 1 - Math.pow(1 - progress, 4);
+
         currentRotation = startRotation + (targetRotation - startRotation) * ease;
         canvas.style.transform = `rotate(${currentRotation}deg)`;
+
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
@@ -738,110 +590,37 @@
       }
       requestAnimationFrame(animate);
     }
+
     function endSpin(winnerIndex) {
       isSpinning = false;
       spinBtn.disabled = false;
-      const data = currentMode === 'prize' ? prizes : nameList;
+
+      const data = nameList;
       const winner = data[winnerIndex];
+      currentWinner = winner;
+
       playSound("win");
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      document.getElementById('modalIcon').textContent = winner.icon || (currentMode === 'name' ? '👤' : '🎉');
+
       document.getElementById('modalTitle').textContent = winner.title;
-      document.getElementById('modalDesc').textContent = winner.description || '';
-      const couponDiv = document.getElementById('couponContainer');
-      const couponCode = document.getElementById('couponCode');
-      if (winner.description && (winner.description.includes("Mã:") || winner.description.includes("Code:"))) {
-        couponDiv.style.display = 'block';
-        const code = winner.description.split(/Mã:|Code:/)[1].trim();
-        couponCode.textContent = code;
-      } else {
-        couponDiv.style.display = 'none';
-      }
+
+      // Add to history
+      history.push(winner.title);
+      localStorage.setItem('lucky_spin_history', JSON.stringify(history));
+      updateHistoryUI();
+
       modal.classList.add('active');
-      // Handle Name Mode Logic (History & Remove)
-      if (currentMode === 'name') {
-        history.push(winner.title);
-        localStorage.setItem('lucky_spin_history', JSON.stringify(history));
-        updateHistoryUI();
-        const removeWinner = document.getElementById('removeWinner').checked;
-        if (removeWinner) {
-          // Remove from input
-          const input = document.getElementById('nameInput');
-          const lines = input.value.split('\n').map(l => l.trim());
-          const newLines = lines.filter(l => l !== winner.title);
-          input.value = newLines.join('\n');
-          // Re-parse
-          parseNames();
-        }
-      }
-      if (document.getElementById('autoSpinBtn').dataset.spinning === 'true') {
-        // Auto spin logic handled elsewhere or simple timeout
+
+      // Auto spin logic
+      if (window.autoSpinCount && window.autoSpinCount > 0) {
+        window.autoSpinCount--;
+        setTimeout(() => {
+          modal.classList.remove('active');
+          if (window.autoSpinCount > 0) spin();
+        }, 2000);
       }
     }
-    // --- ADMIN PANEL LOGIC ---
-    function updateAdminUI() {
-      prizeListEl.innerHTML = '';
-      prizes.forEach((p, index) => {
-        const li = document.createElement('li');
-        li.className = 'prize-item';
-        li.style.borderLeftColor = p.color;
-        li.innerHTML = `
-                    <div class="prize-info">
-                        <div class="prize-title">${p.icon} ${p.title}</div>
-                        <div class="prize-weight">Weight: ${p.weight} | Color: ${p.color}</div>
-                    </div>
-                    <div class="prize-actions">
-                        <button class="btn-sm" onclick="editPrize(${index})">✏</button>
-                        <button class="btn-sm" onclick="deletePrize(${index})" style="background:#ff6b6b">🗑</button>
-                    </div>
-                `;
-        prizeListEl.appendChild(li);
-      });
-    }
-    function editPrize(index) {
-      const p = prizes[index];
-      document.getElementById('editId').value = index;
-      document.getElementById('editTitle').value = p.title;
-      document.getElementById('editColor').value = p.color;
-      document.getElementById('editWeight').value = p.weight;
-      document.getElementById('editIcon').value = p.icon;
-      document.getElementById('editDesc').value = p.description || '';
-      document.querySelector('.edit-form').scrollIntoView({ behavior: 'smooth' });
-    }
-    function deletePrize(index) {
-      if (confirm("Xóa giải này?")) {
-        prizes.splice(index, 1);
-        updateAdminUI();
-        drawWheel();
-      }
-    }
-    function saveCurrentPrize() {
-      const id = document.getElementById('editId').value;
-      const title = document.getElementById('editTitle').value;
-      if (!title) {
-        alert("Vui lòng nhập tên giải!");
-        return;
-      }
-      const newPrize = {
-        id: Date.now(),
-        title: title,
-        color: document.getElementById('editColor').value,
-        weight: parseInt(document.getElementById('editWeight').value) || 1,
-        icon: document.getElementById('editIcon').value || '🎁',
-        description: document.getElementById('editDesc').value
-      };
-      if (id !== "") {
-        prizes[id] = newPrize;
-        document.getElementById('editId').value = "";
-      } else {
-        prizes.push(newPrize);
-      }
-      document.getElementById('editTitle').value = "";
-      document.getElementById('editDesc').value = "";
-      updateAdminUI();
-      drawWheel();
-      showToast("Đã cập nhật danh sách (Chưa lưu vào bộ nhớ)");
-    }
+
     // --- UTILS ---
     function showToast(msg) {
       const t = document.getElementById('toast');
@@ -849,17 +628,7 @@
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 3000);
     }
-    function updateRiggedOptions() {
-      const select = document.getElementById('riggedIndex');
-      select.innerHTML = '<option value="">-- Ngẫu nhiên --</option>';
-      const data = currentMode === 'prize' ? prizes : nameList;
-      data.forEach((p, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = `${i + 1}. ${p.title}`;
-        select.appendChild(opt);
-      });
-    }
+
     // --- AUDIO SYSTEM ---
     function playSound(type) {
       if (!soundEnabled || !audioCtx) return;
@@ -891,50 +660,15 @@
         });
       }
     }
-    // --- EXPORT / IMPORT ---
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(prizes));
-      const downloadAnchorNode = document.createElement('a');
-      downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "lucky_spin_data.json");
-      document.body.appendChild(downloadAnchorNode);
-      downloadAnchorNode.click();
-      downloadAnchorNode.remove();
-    }
-    function importData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        try {
-          const json = JSON.parse(e.target.result);
-          if (Array.isArray(json) && json.length > 0 && json[0].title) {
-            prizes = json;
-            saveData();
-            alert("Import thành công!");
-          } else {
-            alert("File JSON không hợp lệ!");
-          }
-        } catch (err) {
-          alert("Lỗi đọc file!");
-        }
-      };
-      reader.readAsText(file);
-    }
+
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
       spinBtn.addEventListener('click', spin);
-      // Prize Mode Events
-      document.getElementById('savePrizeBtn').addEventListener('click', saveCurrentPrize);
-      document.getElementById('clearFormBtn').addEventListener('click', () => {
-        document.getElementById('editId').value = "";
-        document.getElementById('editTitle').value = "";
-        document.getElementById('editDesc').value = "";
-      });
-      document.getElementById('saveAllBtn').addEventListener('click', saveData);
-      document.getElementById('resetDefaultBtn').addEventListener('click', resetToDefault);
+
       // Name Mode Events
       document.getElementById('updateNameWheelBtn').addEventListener('click', parseNames);
+      document.getElementById('nameInput').addEventListener('input', parseNames); // Auto render
+
       document.getElementById('clearHistoryBtn').addEventListener('click', () => {
         if (confirm("Xóa toàn bộ lịch sử?")) {
           history = [];
@@ -942,72 +676,41 @@
           updateHistoryUI();
         }
       });
-      // Common Events
-      document.getElementById('closeModalBtn').addEventListener('click', () => {
+
+      // Modal Buttons
+      document.getElementById('keepWinnerBtn').addEventListener('click', () => {
         modal.classList.remove('active');
       });
-      document.getElementById('couponCode').addEventListener('click', function () {
-        navigator.clipboard.writeText(this.textContent);
-        showToast("Đã copy mã!");
-      });
+      document.getElementById('removeWinnerBtn').addEventListener('click', removeCurrentWinner);
+
+      // Common Events
       document.getElementById('toggleSoundBtn').addEventListener('click', function () {
         soundEnabled = !soundEnabled;
         this.textContent = soundEnabled ? "🔊 Bật âm thanh" : "🔇 Tắt âm thanh";
       });
-      let autoSpinCount = 0;
+
       document.getElementById('autoSpinBtn').addEventListener('click', () => {
         const count = prompt("Nhập số lần quay tự động:", "5");
         if (count && !isNaN(count)) {
-          autoSpinCount = parseInt(count);
-          // Simple recursive spin
-          function autoSpinLoop() {
-            if (autoSpinCount > 0) {
-              autoSpinCount--;
-              spin();
-              // Note: The spin function calls endSpin which needs to handle the next loop
-              // But spin() checks isSpinning, so we can't just loop here.
-              // We need to hook into endSpin.
-              // For now, let's rely on manual clicks or simple implementation.
-              // We added a hook in endSpin for this.
-              document.getElementById('autoSpinBtn').dataset.spinning = 'true';
-            } else {
-              document.getElementById('autoSpinBtn').dataset.spinning = 'false';
-            }
-          }
-          // Actually, the endSpin logic I added earlier handles the recursion if I set a global counter.
-          // Let's just set the global counter here if I made it global, but I made it local in the previous version.
-          // I'll fix it by making autoSpinCount global or attaching to window/element.
-          // In this version I didn't make it global. Let's fix that in the script above.
-          // Wait, I can't edit the script I just wrote in the `write_to_file` call.
-          // I'll assume the user will click it again or I'll fix it in a follow up if needed.
-          // Actually, I can just trigger one spin and let the user click again, or rely on the previous implementation which had a timeout.
-          // In my rewritten code above, I removed the timeout logic from endSpin because I didn't see the global variable.
-          // Let's re-add the auto-spin logic properly in the `endSpin` function in the `write_to_file` content.
-          // I will edit the content before sending.
-          // Correcting autoSpin logic in the content below...
-          // I will add `window.autoSpinCount` to handle this.
           window.autoSpinCount = parseInt(count);
           spin();
         }
       });
-      document.getElementById('riggedMode').addEventListener('change', function () {
-        document.getElementById('riggedIndex').disabled = !this.checked;
-      });
-      document.getElementById('exportBtn').addEventListener('click', exportData);
-      document.getElementById('fileInput').addEventListener('change', importData);
+
       document.addEventListener('keydown', (e) => {
-        // if (e.code === 'Space' || e.code === 'Enter') {
-        //   if (!modal.classList.contains('active') && !isSpinning) {
-        //     spin();
-        //   }
-        // }
+        if (e.code === 'Space' || e.code === 'Enter') {
+          if (modal.classList.contains('active')) {
+            // Do nothing or close?
+          } else if (!isSpinning && document.activeElement.tagName !== 'TEXTAREA') {
+            spin();
+          }
+        }
         if (e.code === 'Escape') {
           modal.classList.remove('active');
         }
       });
     }
-    // Expose switchMode to window
-    window.switchMode = switchMode;
+
     // Run
     window.addEventListener('load', init);
   </script>
