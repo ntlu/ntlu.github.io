@@ -53,9 +53,36 @@
     #restartBtn:hover {
       background-color: rgb(55, 20, 252);
     }
+    @media (max-width: 768px) {
+      canvas {
+        max-width: 95vw !important;
+        height: auto !important;
+      }
+      #modeSelection h2, #modeSelection label {
+        display: none !important;
+      }
+    }
+    .back-home {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #227c97;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
   </style>
 </head>
 <body>
+  <a href="index.html" class="back-home">🏠 Trang chủ</a>
   <div id="modeSelection">
     <label for="mode">Chọn chế độ chơi:</label>
     <select id="mode">

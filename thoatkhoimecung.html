@@ -321,10 +321,36 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
+    @media (max-width: 768px) {
+      .game-title {
+        display: none !important;
+      }
+    }
+    .back-home {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2000;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #00ff88;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,255,136,0.2);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      font-family: 'Orbitron', sans-serif;
+    }
   </style>
 </head>
 
 <body>
+  <a href="index.html" class="back-home">🏠 Trang chủ</a>
   <div id="gameContainer">
     <canvas id="gameCanvas"></canvas>
     <!-- Post-processing effects -->

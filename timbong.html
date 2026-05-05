@@ -313,20 +313,40 @@
     }
 
     /* Responsive */
-    @media (max-width: 400px) {
-      .cups-container {
-        gap: 10px;
-      }
-
       .cup-wrapper {
         width: 70px;
         height: 100px;
       }
     }
+    @media (max-width: 768px) {
+      header {
+        display: none !important;
+      }
+    }
+    .back-home {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
   </style>
 </head>
 
 <body>
+  <a href="index.html" class="back-home">🏠 Trang chủ</a>
   <div class="game-container">
     <header>
       <h1>Tìm BÓNG</h1>

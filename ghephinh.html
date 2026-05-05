@@ -94,13 +94,38 @@
                 transform: scale(1) rotate(0deg);
             }
         }
+
+        @media (max-width: 768px) {
+            .game-header {
+                display: none !important;
+            }
+        }
+
+        .back-home {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 9999px;
+            text-decoration: none;
+            color: #d946ef;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
     </style>
 </head>
 
 <body class="bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 min-h-screen">
+    <a href="index.html" class="back-home">🏠 Trang chủ</a>
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
-        <div class="text-center mb-6 md:mb-8">
+        <div class="text-center mb-6 md:mb-8 game-header">
             <div
                 class="bg-white/10 backdrop-blur-lg rounded-3xl p-4 md:p-8 mx-auto max-w-2xl shadow-2xl border border-white/20">
                 <h1 class="text-3xl md:text-5xl font-bold text-white mb-2 md:mb-3 drop-shadow-lg">🧩 Trò Chơi Ghép Hình

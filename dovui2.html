@@ -37,34 +37,11 @@
     .card-shadow {
       box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     }
-    @media (max-width: 768px) {
-      .game-intro {
-        display: none !important;
-      }
-    }
-    .back-home {
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      z-index: 50;
-      background: white;
-      padding: 6px 12px;
-      border-radius: 9999px;
-      text-decoration: none;
-      color: #4f46e5;
-      font-weight: bold;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
   </style>
 </head>
 <body class="gradient-bg min-h-screen">
-  <a href="index.html" class="back-home">🏠 Trang chủ</a>
   <div class="container mx-auto px-4 py-8">
-    <div class="text-center mb-8 game-intro">
+    <div class="text-center mb-8">
       <h1 class="text-5xl font-bold text-white mb-4 bounce-in">🎯 Đố Vui 🎯</h1>
       <p class="text-xl text-white/90 fade-in">Hãy thử thách kiến thức của bạn!</p>
     </div>
@@ -259,6 +236,16 @@
       document.getElementById('questionScreen').classList.add('hidden');
       document.getElementById('topicScreen').classList.remove('hidden');
     }
+  </script>
+
+  <!-- Tải script dữ liệu sau cùng -->
+  <script src="qMath.js"></script>
+  <script src="qLiterature.js"></script>
+  <script src="qQuiz.js"></script>
+  <script src="qHistory.js"></script>
+  <script src="qGeography.js"></script>
+</body>
+</html>
   </script>
 
   <!-- Tải script dữ liệu sau cùng -->

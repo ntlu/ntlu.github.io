@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Spot the Difference — Tìm điểm khác nhau</title>
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --accent: #ff6b6b;
+      --muted: #9aa4b2;
+      --found: rgba(78, 205, 196, 0.3);
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial;
+      background: linear-gradient(180deg, var(--bg), #071033);
+      color: #eff7ff
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 18px;
+    }
+
+    .header {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .select,
+    .btn {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    .select {
+      background: rgba(255, 255, 255, 0.03);
+      color: inherit
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff
+    }
+
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06)
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: start
+    }
+
+    @media(max-width:900px) {
+      .board {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.03)
+    }
+
+    .canvas-wrap {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 12px
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      background: linear-gradient(180deg, #fff, #f7fbff);
+      border-radius: 8px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4)
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .status {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 8px
+    }
+
+    .progress {
+      font-weight: 800;
+      color: #fff
+    }
+
+    .hint-note {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .hintBox {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    /* marker style */
+    .marker {
+      position: absolute;
+      pointer-events: none;
+      border: 3px solid rgba(78, 205, 196, 0.95);
+      border-radius: 50%;
+      box-shadow: 0 6px 18px rgba(78, 205, 196, 0.12);
+      transform: translate(-50%, -50%);
+    }
+
+    .foundMarker {
+      background: var(--found);
+      border: 3px solid rgba(78, 205, 196, 0.9);
+    }
+
+    .footer-info {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .modal {
+      position: fixed;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.6);
+      z-index: 999;
+      visibility: hidden;
+      opacity: 0;
+      transition: all .2s
+    }
+
+    .modal.show {
+      visibility: visible;
+      opacity: 1
+    }
+
+    .modal-card {
+      background: linear-gradient(180deg, #fff, #f7fbff);
+      color: #061129;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 480px;
+      text-align: center
+    }
+
+    .small {
+      font-size: 13px;
+      color: var(--muted)
+    }
+    @media (max-width: 768px) {
+      .header h1, .header .small {
+        display: none !important;
+      }
+    }
+    .back-home {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #ff6b6b;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="index.html" class="back-home">🏠 Trang chủ</a>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>🎯 Tìm điểm khác nhau — Rèn quan sát & ghi nhớ</h1>
+        <div class="small">Click vào ảnh bên phải để tìm điểm khác nhau so với ảnh gốc (bên trái).</div>
+      </div>
+      <div class="controls">
+        <select id="difficulty" class="select">
+          <option value="easy">Dễ — 3 khác biệt</option>
+          <option value="medium" selected>Trung bình — 5 khác biệt</option>
+          <option value="hard">Khó — 8 khác biệt</option>
+        </select>
+        <button id="startBtn" class="btn">Bắt đầu</button>
+        <button id="hintBtn" class="btn ghost">Gợi ý</button>
+        <button id="resetBtn" class="btn ghost">Tạo lại</button>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="panel canvas-wrap">
+        <div class="label">Ảnh gốc</div>
+        <canvas id="canvasA" width="640" height="480"></canvas>
+        <div class="status">
+          <div class="label">Thời gian:</div>
+          <div id="timerA" class="progress">00:00</div>
+        </div>
+      </div>
+
+      <div class="panel canvas-wrap" style="position:relative">
+        <div class="label">Ảnh có khác biệt (click vào đây)</div>
+        <canvas id="canvasB" width="640" height="480"></canvas>
+        <!-- container for markers -->
+        <div id="markersContainer" style="position:absolute; inset:110px 12px 12px 12px; pointer-events:none"></div>
+
+        <div class="status">
+          <div class="label">Còn lại:</div>
+          <div id="leftCount" class="progress"></div>
+          <div style="margin-left:auto" class="label">Điểm: <span id="score">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-info">
+      <div class="hint-note">Mẹo: Số khác biệt tăng theo độ khó. Dùng <strong>Gợi ý</strong> nếu bí — nhưng gợi ý trừ
+        điểm.</div>
+    </div>
+  </div>
+
+  <div id="winModal" class="modal">
+    <div class="modal-card">
+      <h2 id="winTitle">Bạn hoàn thành!</h2>
+      <p id="winMsg" class="small">Thời gian: <span id="finalTime">00:00</span> — Điểm: <span id="finalScore">0</span>
+      </p>
+      <div style="margin-top:12px"><button id="playAgain" class="btn">Chơi lại</button> <button id="closeModal"
+          class="btn ghost">Đóng</button></div>
+    </div>
+  </div>
+
+  <script>
+    /*
+      Spot the Difference (demo)
+      - Tạo 1 scene ngẫu nhiên trên canvas A
+      - Tạo canvas B bằng cách copy A và thực hiện N thay đổi nhỏ (add/remove/modify)
+      - Khi user click canvas B: kiểm tra khoảng cách đến từng difference center
+      - Nếu đúng: đánh dấu marker; nếu sai: hiệu ứng nhỏ
+      - Gợi ý: highlight 1 difference tạm thời (trừ điểm)
+      - Code có comment tiếng Việt để dễ hiểu
+    */
+
+    const canvasA = document.getElementById('canvasA');
+    const canvasB = document.getElementById('canvasB');
+    const ctxA = canvasA.getContext('2d');
+    const ctxB = canvasB.getContext('2d');
+
+    const difficultyEl = document.getElementById('difficulty');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const hintBtn = document.getElementById('hintBtn');
+    const leftCountEl = document.getElementById('leftCount');
+    const scoreEl = document.getElementById('score');
+    const timerA = document.getElementById('timerA');
+
+    const markersContainer = document.getElementById('markersContainer');
+    const winModal = document.getElementById('winModal');
+    const finalTimeEl = document.getElementById('finalTime');
+    const finalScoreEl = document.getElementById('finalScore');
+    const playAgain = document.getElementById('playAgain');
+    const closeModal = document.getElementById('closeModal');
+
+    let WIDTH = canvasA.width, HEIGHT = canvasA.height;
+    let differences = []; // mỗi phần tử: {x,y,r,type,found:boolean}
+    let totalDiff = 5;
+    let foundCount = 0;
+    let score = 0;
+    let timer = 0, timerInterval = null;
+    let hintPenalty = 1; // trừ điểm khi dùng hint
+
+    // lấy số khác biệt theo độ khó
+    function getDiffCountByDifficulty(level) {
+      if (level === 'easy') return 3;
+      if (level === 'medium') return 5;
+      return 8;
+    }
+
+    // ----- Utils -----
+    function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min }
+    function randFloat(min, max) { return Math.random() * (max - min) + min }
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    // ----- Scene generation -----
+    // Tạo 1 "scene" gồm nền + các object: rectangles, circles, stars, texts
+    function generateScene(seedObj) {
+      // seedObj optional để render theo tồn tại list các object để đồng bộ giữa A và B
+      const objects = seedObj || [];
+      if (!seedObj) {
+        // generate random objects
+        const colors = ['#FFB6C1', '#FFD59E', '#C7F9CC', '#B5E3FF', '#E6D1FF', '#FFF1A8'];
+        // background gradient
+        const bgGrad = ctxA.createLinearGradient(0, 0, WIDTH, HEIGHT);
+        bgGrad.addColorStop(0, '#f8fbff');
+        bgGrad.addColorStop(1, '#ffffff');
+        ctxA.fillStyle = bgGrad;
+        ctxA.fillRect(0, 0, WIDTH, HEIGHT);
+        // Add some "shelf" shapes to give warehouse vibe sometimes
+        // But scene generic to be used for many themes
+        const objCount = rand(6, 10);
+        for (let i = 0; i < objCount; i++) {
+          const type = ['circle', 'rect', 'star', 'text'][rand(0, 3)];
+          const w = rand(40, 140), h = rand(20, 120);
+          const x = rand(20, WIDTH - w - 20), y = rand(20, HEIGHT - h - 20);
+          const color = colors[rand(0, colors.length - 1)];
+          objects.push({ type, x, y, w, h, color, r: rand(12, 36), text: String.fromCharCode(65 + rand(0, 25)) });
+        }
+      }
+
+      // draw to ctxA
+      ctxA.clearRect(0, 0, WIDTH, HEIGHT);
+      // background subtle
+      const g = ctxA.createLinearGradient(0, 0, WIDTH, HEIGHT);
+      g.addColorStop(0, '#f8fbff'); g.addColorStop(1, '#f1f8ff');
+      ctxA.fillStyle = g;
+      ctxA.fillRect(0, 0, WIDTH, HEIGHT);
+
+      objects.forEach(o => {
+        if (o.type === 'circle') {
+          ctxA.beginPath();
+          ctxA.fillStyle = o.color;
+          ctxA.arc(o.x + o.r, o.y + o.r, o.r, 0, Math.PI * 2);
+          ctxA.fill();
+        } else if (o.type === 'rect') {
+          ctxA.fillStyle = o.color;
+          ctxA.fillRect(o.x, o.y, o.w, o.h);
+          // add stripe
+          ctxA.fillStyle = 'rgba(255,255,255,0.08)';
+          ctxA.fillRect(o.x + 6, o.y + 6, Math.min(24, o.w - 12), Math.min(18, o.h - 12));
+        } else if (o.type === 'star') {
+          drawStar(ctxA, o.x + o.w / 2, o.y + o.h / 2, 5, Math.min(o.w, o.h) / 4, Math.min(o.w, o.h) / 8, o.color);
+        } else if (o.type === 'text') {
+          ctxA.fillStyle = o.color;
+          ctxA.font = 'bold 32px serif';
+          ctxA.fillText(o.text, o.x, o.y + 30);
+        }
+      });
+
+      return objects;
+    }
+
+    // helper draw star
+    function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius, color) {
+      let rot = Math.PI / 2 * 3;
+      let x = cx, y = cy;
+      let step = Math.PI / spikes;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        ctx.lineTo(x, y)
+        rot += step
+
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        ctx.lineTo(x, y)
+        rot += step
+      }
+      ctx.lineTo(cx, cy - outerRadius);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    // ----- Create modified image with differences -----
+    // Copy objects then apply N edits: add, remove, modify color, move slightly, change shape, flip text
+    function createModifiedFromObjects(objects, diffCount) {
+      // deep copy
+      const objs = objects.map(o => ({ ...o }));
+      const diffs = [];
+      const availableIndices = objs.map((_, i) => i);
+
+      // some operations: remove an object, change color, change type, move position, add new small object
+      for (let i = 0; i < diffCount; i++) {
+        const op = rand(0, 4); // 0: remove, 1: color, 2: move, 3: type change, 4:add
+        if ((op === 0 || availableIndices.length === 0) && objs.length > 0) {
+          // remove a random object (mark diff center at its center)
+          const idx = availableIndices.splice(rand(0, availableIndices.length - 1), 1)[0];
+          const o = objs[idx];
+          const cx = (o.x || 0) + ((o.w || 0) / 2) + (o.r || 0);
+          const cy = (o.y || 0) + ((o.h || 0) / 2) + (o.r || 0);
+          diffs.push({ x: cx, y: cy, r: Math.max(20, (o.r || o.w || o.h || 40) / 2), type: 'removed' });
+          objs.splice(idx, 1);
+        } else if (op === 1 && objs.length > 0) {
+          // change color of random one
+          const idx = rand(0, objs.length - 1);
+          const o = objs[idx];
+          const oldColor = o.color;
+          const newColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+          o.color = newColor;
+          const cx = (o.x || 0) + ((o.w || 0) / 2) + (o.r || 0);
+          const cy = (o.y || 0) + ((o.h || 0) / 2) + (o.r || 0);
+          diffs.push({ x: cx, y: cy, r: Math.max(18, (o.r || o.w || o.h || 36) / 3), type: 'color', oldColor });
+        } else if (op === 2 && objs.length > 0) {
+          // move slightly
+          const idx = rand(0, objs.length - 1);
+          const o = objs[idx];
+          const dx = rand(-28, 28), dy = rand(-20, 20);
+          o.x = Math.max(6, Math.min(WIDTH - (o.w || o.r || 30) - 6, o.x + dx));
+          o.y = Math.max(6, Math.min(HEIGHT - (o.h || o.r || 30) - 6, o.y + dy));
+          const cx = (o.x || 0) + ((o.w || 0) / 2) + (o.r || 0);
+          const cy = (o.y || 0) + ((o.h || 0) / 2) + (o.r || 0);
+          diffs.push({ x: cx, y: cy, r: Math.max(16, (o.r || o.w || o.h || 32) / 3), type: 'moved' });
+        } else if (op === 3 && objs.length > 0) {
+          // type change: circle->rect or rect->circle or text flip
+          const idx = rand(0, objs.length - 1);
+          const o = objs[idx];
+          const oldType = o.type;
+          const newType = oldType === 'circle' ? 'rect' : oldType === 'rect' ? 'star' : oldType === 'star' ? 'circle' : 'text';
+          o.type = newType;
+          // adjust props
+          o.w = o.w || 60; o.h = o.h || 40; o.r = o.r || 28;
+          const cx = (o.x || 0) + ((o.w || 0) / 2) + (o.r || 0);
+          const cy = (o.y || 0) + ((o.h || 0) / 2) + (o.r || 0);
+          diffs.push({ x: cx, y: cy, r: Math.max(18, (o.r || o.w || o.h || 36) / 3), type: 'typechange', oldType });
+        } else {
+          // add a new small object
+          const w = rand(26, 66), h = rand(20, 66);
+          const x = rand(12, WIDTH - w - 12), y = rand(12, HEIGHT - h - 12);
+          const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+          const type = ['circle', 'rect', 'star'][rand(0, 2)];
+          objs.push({ type, x, y, w, h, color, r: rand(10, 28) });
+          const cx = x + (w / 2);
+          const cy = y + (h / 2);
+          diffs.push({ x: cx, y: cy, r: Math.max(14, Math.min(w, h) / 2), type: 'added' });
+        }
+      }
+
+      return { objects: objs, diffs };
+    }
+
+    // render objects to a context
+    function renderObjectsToCtx(ctx, objects) {
+      ctx.clearRect(0, 0, WIDTH, HEIGHT);
+      // background
+      const g = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
+      g.addColorStop(0, '#f8fbff'); g.addColorStop(1, '#eef8ff');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      objects.forEach(o => {
+        if (o.type === 'circle') {
+          ctx.beginPath();
+          ctx.fillStyle = o.color;
+          ctx.arc(o.x + o.r, o.y + o.r, o.r, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (o.type === 'rect') {
+          ctx.fillStyle = o.color;
+          ctx.fillRect(o.x, o.y, o.w, o.h);
+          ctx.fillStyle = 'rgba(255,255,255,0.06)';
+          ctx.fillRect(o.x + 6, o.y + 6, Math.min(24, o.w - 12), Math.min(18, o.h - 12));
+        } else if (o.type === 'star') {
+          drawStar(ctx, o.x + o.w / 2, o.y + o.h / 2, 5, Math.min(o.w, o.h) / 4, Math.min(o.w, o.h) / 8, o.color);
+        } else if (o.type === 'text') {
+          ctx.fillStyle = o.color; ctx.font = 'bold 32px serif';
+          ctx.fillText(o.text, o.x, o.y + 30);
+        }
+      });
+    }
+
+    // ----- Game flow -----
+    function startGame() {
+      // reset
+      stopTimer();
+      differences = []; foundCount = 0; score = 0; scoreEl.textContent = score;
+      markersContainer.innerHTML = '';
+      WIDTH = canvasA.width = canvasB.width = 640;
+      HEIGHT = canvasA.height = canvasB.height = 480;
+
+      const level = difficultyEl.value;
+      totalDiff = getDiffCountByDifficulty(level);
+
+      // generate base scene objects
+      const baseObjects = generateScene();
+      // create modified copy with N diffs
+      const mod = createModifiedFromObjects(baseObjects, totalDiff);
+      differences = mod.diffs.map(d => ({ ...d, found: false }));
+
+      // render to canvases
+      renderObjectsToCtx(ctxA, baseObjects);
+      renderObjectsToCtx(ctxB, mod.objects);
+
+      // update UI
+      leftCountEl.textContent = totalDiff - foundCount;
+      startTimer();
+    }
+
+    // when user clicks on canvasB
+    canvasB.addEventListener('click', function (e) {
+      const rect = canvasB.getBoundingClientRect();
+      const scaleX = canvasB.width / rect.width;
+      const scaleY = canvasB.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+
+      // check each un-found difference for proximity
+      let hitIndex = -1;
+      for (let i = 0; i < differences.length; i++) {
+        if (differences[i].found) continue;
+        const d = differences[i];
+        const dx = x - d.x, dy = y - d.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= Math.max(24, d.r + 8)) {
+          hitIndex = i; break;
+        }
+      }
+
+      if (hitIndex >= 0) {
+        // correct
+        markFound(hitIndex);
+      } else {
+        // wrong click: small shake or flash
+        wrongClickFeedback(e.clientX, e.clientY);
+        // optional: penalize score
+        if (score > 0) { score = Math.max(0, score - 1); scoreEl.textContent = score; }
+      }
+    });
+
+    function markFound(index) {
+      differences[index].found = true;
+      foundCount++;
+      score += 10;
+      scoreEl.textContent = score;
+      leftCountEl.textContent = totalDiff - foundCount;
+      // draw marker overlay at position
+      const m = differences[index];
+      placeMarker(m.x, m.y, m.r);
+      // check win
+      if (foundCount >= totalDiff) {
+        winGame();
+      }
+    }
+
+    // place visual marker at canvasB position (absolute within markersContainer)
+    // markersContainer positioned with inset values relative to panel, so we need compute relative positions
+    function placeMarker(x, y, r) {
+      // compute relative to canvas rect inside container
+      const rect = canvasB.getBoundingClientRect();
+      const parentRect = markersContainer.parentElement.getBoundingClientRect();
+      const relLeft = rect.left - parentRect.left;
+      const relTop = rect.top - parentRect.top;
+      // scale?
+      const scaleX = rect.width / canvasB.width;
+      const scaleY = rect.height / canvasB.height;
+
+      const el = document.createElement('div');
+      el.className = 'marker foundMarker';
+      el.style.width = (r * 2 * scaleX) + 'px';
+      el.style.height = (r * 2 * scaleY) + 'px';
+      el.style.left = (relLeft + x * scaleX) + 'px';
+      el.style.top = (relTop + y * scaleY) + 'px';
+
+      markersContainer.appendChild(el);
+    }
+
+    // small flash for wrong click
+    function wrongClickFeedback(clientX, clientY) {
+      const flash = document.createElement('div');
+      flash.style.position = 'fixed';
+      flash.style.left = (clientX - 10) + 'px';
+      flash.style.top = (clientY - 10) + 'px';
+      flash.style.width = '20px'; flash.style.height = '20px';
+      flash.style.borderRadius = '50%';
+      flash.style.background = 'rgba(255,107,107,0.9)';
+      flash.style.zIndex = 999;
+      document.body.appendChild(flash);
+      setTimeout(() => { flash.style.transition = 'opacity .5s'; flash.style.opacity = '0'; setTimeout(() => flash.remove(), 500); }, 200);
+    }
+
+    // ----- Timer -----
+    function startTimer() {
+      timer = 0;
+      timerA.textContent = formatTime(timer);
+      timerInterval = setInterval(() => {
+        timer++;
+        timerA.textContent = formatTime(timer);
+      }, 1000);
+    }
+    function stopTimer() { if (timerInterval) clearInterval(timerInterval); timerInterval = null; }
+
+    // ----- Hint -----
+    hintBtn.addEventListener('click', () => {
+      // find first not found diff
+      const idx = differences.findIndex(d => !d.found);
+      if (idx === -1) return;
+      // show highlight at that position for 2s, deduct penalty
+      const d = differences[idx];
+      showTemporaryHighlight(d.x, d.y, d.r, 2000);
+      if (score >= hintPenalty) score -= hintPenalty; else score = 0;
+      scoreEl.textContent = score;
+    });
+
+    function showTemporaryHighlight(x, y, r, dur) {
+      // create ring on top of canvas
+      const rect = canvasB.getBoundingClientRect();
+      const parentRect = markersContainer.parentElement.getBoundingClientRect();
+      const relLeft = rect.left - parentRect.left;
+      const relTop = rect.top - parentRect.top;
+      const scaleX = rect.width / canvasB.width;
+      const scaleY = rect.height / canvasB.height;
+
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.style.border = '3px dashed rgba(255,255,107,0.9)';
+      el.style.background = 'transparent';
+      el.style.width = (r * 2 * scaleX) + 'px';
+      el.style.height = (r * 2 * scaleY) + 'px';
+      el.style.left = (relLeft + x * scaleX) + 'px';
+      el.style.top = (relTop + y * scaleY) + 'px';
+      markersContainer.appendChild(el);
+      setTimeout(() => { el.remove(); }, dur);
+    }
+
+    // ----- Win -----
+    function winGame() {
+      stopTimer();
+      // show modal with stats
+      finalTimeEl.textContent = formatTime(timer);
+      finalScoreEl.textContent = score;
+      document.getElementById('winTitle').textContent = 'Chúc mừng — Bạn đã tìm đủ khác biệt!';
+      document.getElementById('winMsg').textContent = `Thời gian: ${formatTime(timer)} — Điểm: ${score}`;
+      winModal.classList.add('show');
+    }
+
+    // ----- Controls binding -----
+    startBtn.addEventListener('click', () => {
+      startGame();
+    });
+    resetBtn.addEventListener('click', () => {
+      startGame();
+    });
+    playAgain.addEventListener('click', () => {
+      winModal.classList.remove('show');
+      startGame();
+    });
+    closeModal.addEventListener('click', () => {
+      winModal.classList.remove('show');
+    });
+    closeModal.addEventListener('keydown', () => { });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'h' || e.key === 'H') { hintBtn.click(); }
+    });
+
+    // start first game
+    startGame();
+
+  </script>
+</body>
+
+</html>

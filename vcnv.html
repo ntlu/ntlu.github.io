@@ -8,39 +8,121 @@
     body {
       background-color: #222;
       color: white;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       text-align: center;
       margin: 0;
-      padding: 20px;
+      padding: 10px;
     }
 
     canvas {
       border: 3px solid #fff;
       background-color: #111;
       display: block;
-      margin: 20px auto;
+      margin: 10px auto;
+      max-width: 95%;
+      height: auto;
     }
 
     .controls {
       margin-bottom: 10px;
+      background: #333;
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-block;
     }
 
     select, button, input[type="color"] {
-      font-size: 16px;
-      padding: 5px 10px;
+      font-size: 14px;
+      padding: 8px 12px;
       margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
+
+    button {
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2ecc71;
     }
 
     .scores {
       margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
     }
 
     label {
-      margin-right: 10px;
+      margin: 5px;
+      font-size: 14px;
+    }
+
+    /* Mobile Controls */
+    .mobile-nav {
+      display: none;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 20px;
+      padding-bottom: 30px;
+    }
+    .nav-btn {
+      width: 80px;
+      height: 80px;
+      background: #444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 5px 0 #111;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .nav-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #111;
+      background: #555;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-nav {
+        display: flex;
+      }
+      /* Ẩn tiêu đề và chọn số người chơi trên mobile */
+      h1, #modeSelect, label:has(#modeSelect) {
+        display: none !important;
+      }
+    }
+    .back-home {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 2000;
+      background: #333;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid #555;
     }
   </style>
 </head>
 <body>
+  <a href="index.html" class="back-home">🏠 Trang chủ</a>
   <h1>🎮 Trò chơi Né Chướng Ngại Vật</h1>
 
   <div class="controls">
@@ -63,10 +145,15 @@
 
     <div id="colorPickers"></div>
 
-    <button id="startBtn">Bắt đầu</button>
+    <button id="startBtn">Bắt đầu trò chơi</button>
   </div>
 
   <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+  <div class="mobile-nav">
+    <button class="nav-btn" id="btnLeft">←</button>
+    <button class="nav-btn" id="btnRight">→</button>
+  </div>
 
   <div class="scores">
     <p id="score1">Người chơi 1: 0</p>
@@ -257,6 +344,30 @@
 
     modeSelect.addEventListener("change", updateColorPickers);
     updateColorPickers(); // gọi lúc đầu để hiển thị picker
+
+    // Mobile Navigation Logic
+    const setupMobileNav = (id, key) => {
+      const btn = document.getElementById(id);
+      const start = (e) => {
+        e.preventDefault();
+        keysPressed[key] = true;
+      };
+      const stop = (e) => {
+        if (e) e.preventDefault();
+        keysPressed[key] = false;
+      };
+
+      btn.addEventListener("touchstart", start, { passive: false });
+      btn.addEventListener("touchend", stop, { passive: false });
+      btn.addEventListener("touchcancel", stop, { passive: false });
+      
+      btn.addEventListener("mousedown", start);
+      btn.addEventListener("mouseup", stop);
+      btn.addEventListener("mouseleave", stop);
+    };
+
+    setupMobileNav("btnLeft", "ArrowLeft");
+    setupMobileNav("btnRight", "ArrowRight");
   </script>
 </body>
 </html>
