@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quay Số May Mắn - Premium Lucky Draw</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700;800;900&display=swap"
+    rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti CDN cho hiệu ứng chúc mừng -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    /* --- HỆ THỐNG BIẾN & THIẾT KẾ CƠ BẢN --- */
+    :root {
+      --bg-base: #0b0f19;
+      --panel-bg: rgba(255, 255, 255, 0.03);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --primary-color: #00f2fe;
+      --secondary-color: #4facfe;
+      --accent-color: #ff0844;
+      --accent-glow: #ffb199;
+      --text-main: #ffffff;
+      --text-muted: #94a3b8;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --font-title: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      background-image:
+        radial-gradient(at 10% 20%, rgba(0, 242, 254, 0.1) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(255, 8, 68, 0.12) 0px, transparent 50%),
+        radial-gradient(at 50% 80%, rgba(79, 172, 254, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      font-family: var(--font-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* --- NÚT TRỞ VỀ TRANG CHỦ KINH ĐIỂN --- */
+    .back-home {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      padding: 10px 18px;
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .back-home:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 242, 254, 0.2);
+    }
+
+    /* --- HEADER --- */
+    header {
+      text-align: center;
+      padding: 30px 20px 10px;
+      margin-top: 20px;
+    }
+
+    h1.app-title {
+      font-family: var(--font-title);
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #fff 30%, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* --- LAYOUT CHÍNH: 3 CỘT GLASSMORPHISM --- */
+    .main-container {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 24px;
+      max-width: 1500px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px 30px 40px;
+      flex: 1;
+    }
+
+    /* Tùy chỉnh thanh cuộn cho các danh sách */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* --- GLASS PANEL CHUNG --- */
+    .glass-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .panel-title {
+      font-family: var(--font-title);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-title i {
+      color: var(--primary-color);
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+
+    /* --- CỘT TRÁI: QUẢN LÝ DANH SÁCH --- */
+    .input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .custom-input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .custom-input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+    }
+
+    .btn {
+      cursor: pointer;
+      font-family: var(--font-title);
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      outline: none;
+    }
+
+    .btn-add {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+      padding: 0 18px;
+      font-size: 0.95rem;
+    }
+
+    .btn-add:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .items-list {
+      list-style: none;
+      overflow-y: auto;
+      flex: 1;
+      max-height: calc(100vh - 350px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .item-row:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .item-name {
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 6px;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      color: var(--accent-color);
+      background: rgba(255, 8, 68, 0.1);
+    }
+
+    /* --- CỘT GIỮA: KHU VỰC QUAY SỐ CHÍNH --- */
+    .center-panel {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 30px;
+    }
+
+    .rolling-display-wrapper {
+      width: 100%;
+      height: 240px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 40px;
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6);
+      transition: all 0.4s ease;
+      padding: 20px;
+    }
+
+    /* Trạng thái khi đang quay */
+    .rolling-display-wrapper.spinning {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 40px rgba(0, 242, 254, 0.2), inset 0 0 30px rgba(0, 242, 254, 0.1);
+    }
+
+    /* Trạng thái khi trúng thưởng */
+    .rolling-display-wrapper.winner {
+      border-color: #ff0844;
+      background: linear-gradient(135deg, rgba(255, 8, 68, 0.1), rgba(255, 177, 153, 0.05));
+      box-shadow: 0 0 60px rgba(255, 8, 68, 0.3), inset 0 0 40px rgba(255, 8, 68, 0.15);
+      animation: winnerGlow 2s infinite alternate;
+    }
+
+    @keyframes winnerGlow {
+      0% {
+        box-shadow: 0 0 40px rgba(255, 8, 68, 0.3);
+      }
+
+      100% {
+        box-shadow: 0 0 80px rgba(255, 177, 153, 0.6);
+      }
+    }
+
+    .displayed-text {
+      font-family: var(--font-title);
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      transition: transform 0.1s ease;
+      user-select: none;
+      word-break: break-word;
+      line-height: 1.2;
+    }
+
+    .displayed-text.winner-text {
+      background: linear-gradient(to right, #ff0844, #ffb199, #ff0844);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine textScale 2s linear infinite;
+      font-size: 3.8rem;
+    }
+
+    @keyframes textScale {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.08);
+      }
+    }
+
+    @keyframes slideText {
+      0% {
+        transform: translateY(-30px);
+        opacity: 0.2;
+      }
+
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .slide-anim {
+      animation: slideText 0.08s cubic-bezier(0.1, 0.9, 0.2, 1);
+    }
+
+    .placeholder-text {
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 1.8rem;
+      font-weight: 500;
+    }
+
+    .btn-spin {
+      background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+      color: #ffffff;
+      font-size: 1.5rem;
+      padding: 22px 60px;
+      border-radius: 100px;
+      letter-spacing: 2px;
+      box-shadow: 0 10px 30px rgba(255, 8, 68, 0.4);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-spin::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(rgba(255, 255, 255, 0.2), transparent, transparent);
+      transform: rotate(45deg);
+      transition: all 0.5s;
+    }
+
+    .btn-spin:hover:not(:disabled) {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 15px 40px rgba(255, 8, 68, 0.6);
+    }
+
+    .btn-spin:active:not(:disabled) {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .btn-spin:disabled {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.3);
+      box-shadow: none;
+      cursor: not-allowed;
+      border-color: transparent;
+    }
+
+    .hint-text {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    kbd {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+    }
+
+    /* --- CỘT PHẢI: LỊCH SỬ & CÔNG BỐ --- */
+    .winners-list {
+      list-style: none;
+      overflow-y: auto;
+      flex: 1;
+      max-height: calc(100vh - 400px);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .winner-card {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      border-left: 3px solid #ff0844;
+      padding: 12px 14px;
+      border-radius: 0 10px 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: slideIn 0.3s ease;
+    }
+
+    .winner-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .winner-index {
+      background: rgba(255, 8, 68, 0.15);
+      color: #ffb199;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .winner-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .panel-footer-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    .btn-action {
+      flex: 1;
+      padding: 12px;
+      font-size: 0.9rem;
+      border-radius: 12px;
+    }
+
+    .btn-announce {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-announce:hover {
+      background: var(--primary-color);
+      color: #000;
+      border-color: transparent;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .btn-reset {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-reset:hover {
+      background: rgba(255, 8, 68, 0.15);
+      color: var(--accent-color);
+      border-color: rgba(255, 8, 68, 0.3);
+    }
+
+    /* --- MODAL CÔNG BỐ KẾT QUẢ --- */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-container {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--primary-color);
+      width: 90%;
+      max-width: 700px;
+      border-radius: 28px;
+      padding: 35px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(0, 242, 254, 0.15);
+      transform: scale(0.9);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-overlay.active .modal-container {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    .modal-title {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+    }
+
+    .btn-modal-close {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-modal-close:hover {
+      background: rgba(255, 8, 68, 0.2);
+      color: var(--accent-color);
+      transform: rotate(90deg);
+    }
+
+    .modal-winners-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      overflow-y: auto;
+      padding-right: 5px;
+      margin-bottom: 25px;
+    }
+
+    .modal-winner-badge {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 14px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: transform 0.2s;
+    }
+
+    .modal-winner-badge:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary-color);
+      background: rgba(0, 242, 254, 0.05);
+    }
+
+    .modal-rank {
+      font-family: var(--font-title);
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #ff0844;
+      background: rgba(255, 8, 68, 0.15);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      word-break: break-word;
+    }
+
+    /* --- ANIMATIONS --- */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* --- ĐÁP ỨNG DI ĐỘNG (RESPONSIVE) --- */
+    @media (max-width: 1200px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .items-list,
+      .winners-list {
+        max-height: 260px;
+      }
+
+      h1.app-title {
+        font-size: 2.2rem;
+      }
+
+      .displayed-text {
+        font-size: 2.5rem;
+      }
+
+      .displayed-text.winner-text {
+        font-size: 3rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Nhóm nút điều hướng trên cùng -->
+  <div style="position: absolute; top: 20px; left: 20px; z-index: 50; display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="index.html" class="back-home" style="position: relative; top: 0; left: 0;">
+      <i class="fa-solid fa-house"></i>
+      <span>Trang chủ</span>
+    </a>
+    <a href="spin.html" class="back-home"
+      style="position: relative; top: 0; left: 0; border-color: rgba(255, 8, 68, 0.4); color: #ffb199;"
+      title="Chuyển sang phiên bản Vòng quay dải ngân hà">
+      <i class="fa-solid fa-right-left"></i>
+      <span>✨ V1</span>
+    </a>
+  </div>
+
+  <!-- Tiêu đề ứng dụng -->
+  <header>
+    <h1 class="app-title">LUCKY DRAW</h1>
+    <p>Quay Số May Mắn Cao Cấp - Tùy chỉnh danh sách & Lưu trữ tự động</p>
+  </header>
+
+  <!-- Bố cục chính -->
+  <main class="main-container">
+
+    <!-- CỘT TRÁI: Danh sách quay thưởng -->
+    <section class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i class="fa-solid fa-users"></i> Danh sách quay</h2>
+        <span class="badge" id="itemCountBadge">0</span>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="customInput" class="custom-input" placeholder="Nhập tên / mục mới..."
+          autocomplete="off" />
+        <button id="addBtn" class="btn btn-add"><i class="fa-solid fa-plus"></i></button>
+      </div>
+
+      <ul class="items-list" id="itemsList">
+        <!-- Danh sách mục render bằng JS -->
+      </ul>
+    </section>
+
+    <!-- CỘT GIỮA: Màn hình quay thưởng chính -->
+    <section class="glass-panel center-panel">
+
+      <!-- Box hiển thị chữ chạy -->
+      <div class="rolling-display-wrapper" id="displayWrapper">
+        <div class="displayed-text placeholder-text" id="displayedText">
+          SẴN SÀNG
+        </div>
+      </div>
+
+      <!-- Nút Quay số -->
+      <button id="spinBtn" class="btn btn-spin">
+        BẮT ĐẦU QUAY
+      </button>
+
+      <div class="hint-text">
+        <i class="fa-regular fa-lightbulb"></i>
+        <span>Mẹo: Nhấn phím <kbd>Space</kbd> để quay nhanh</span>
+      </div>
+    </section>
+
+    <!-- CỘT PHẢI: Lịch sử trúng thưởng -->
+    <section class="glass-panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i class="fa-solid fa-trophy"></i> Lịch sử trúng</h2>
+        <span class="badge" id="winnerCountBadge">0</span>
+      </div>
+
+      <ul class="winners-list" id="winnersList">
+        <!-- Lịch sử trúng thưởng render bằng JS -->
+      </ul>
+
+      <div class="panel-footer-actions">
+        <button id="resetBtn" class="btn btn-action btn-reset" title="Khôi phục người trúng về danh sách quay">
+          <i class="fa-solid fa-rotate-left"></i> Làm mới
+        </button>
+        <button id="announceBtn" class="btn btn-action btn-announce">
+          <i class="fa-solid fa-bullhorn"></i> Công bố
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL CÔNG BỐ GIẢI THƯỞNG -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">BẢNG VÀNG DANH DỰ</h3>
+        <p style="color: var(--text-muted); margin-top: 5px;">Danh sách toàn bộ những người may mắn trúng giải</p>
+        <button class="btn-modal-close" id="modalCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-winners-grid" id="modalWinnersGrid">
+        <!-- Render danh sách toàn bộ người trúng giải -->
+      </div>
+
+      <div style="text-align: center;">
+        <button class="btn btn-add" style="padding: 12px 30px;" id="modalOkBtn">Hoàn tất</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT LOGIC JAVASCRIPT -->
+  <script>
+    // --- HẰNG SỐ & KEY LOCALSTORAGE ---
+    const STORAGE_KEY_ITEMS = 'custom_random_items';
+    const STORAGE_KEY_WINNERS = 'custom_random_winners';
+
+    // Dữ liệu mẫu ban đầu nếu người dùng chưa từng dùng ứng dụng
+    const DEFAULT_ITEMS = [
+
+    ];
+
+    // --- TRẠNG THÁI ỨNG DỤNG (STATE) ---
+    let itemsPool = [];
+    let winnersList = [];
+    let isSpinning = false;
+    let spinInterval = null;
+
+    // --- CÁC PHẦN TỬ DOM ---
+    const customInput = document.getElementById('customInput');
+    const addBtn = document.getElementById('addBtn');
+    const itemsListDOM = document.getElementById('itemsList');
+    const itemCountBadge = document.getElementById('itemCountBadge');
+
+    const displayWrapper = document.getElementById('displayWrapper');
+    const displayedText = document.getElementById('displayedText');
+    const spinBtn = document.getElementById('spinBtn');
+
+    const winnersListDOM = document.getElementById('winnersList');
+    const winnerCountBadge = document.getElementById('winnerCountBadge');
+    const resetBtn = document.getElementById('resetBtn');
+    const announceBtn = document.getElementById('announceBtn');
+
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalOkBtn = document.getElementById('modalOkBtn');
+    const modalWinnersGrid = document.getElementById('modalWinnersGrid');
+
+    // --- KHỞI TẠO DỮ LIỆU ---
+    function initApp() {
+      // Đọc LocalStorage
+      const savedItems = localStorage.getItem(STORAGE_KEY_ITEMS);
+      const savedWinners = localStorage.getItem(STORAGE_KEY_WINNERS);
+
+      if (savedItems) {
+        try { itemsPool = JSON.parse(savedItems); } catch (e) { itemsPool = [...DEFAULT_ITEMS]; }
+      } else {
+        // Tải danh sách mặc định nếu chưa có
+        itemsPool = [...DEFAULT_ITEMS];
+        saveItemsToStorage();
+      }
+
+      if (savedWinners) {
+        try { winnersList = JSON.parse(savedWinners); } catch (e) { winnersList = []; }
+      }
+
+      // Render giao diện
+      renderItems();
+      renderWinners();
+      updateReadyState();
+    }
+
+    // --- LƯU TRỮ LOCALSTORAGE ---
+    function saveItemsToStorage() {
+      localStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(itemsPool));
+    }
+
+    function saveWinnersToStorage() {
+      localStorage.setItem(STORAGE_KEY_WINNERS, JSON.stringify(winnersList));
+    }
+
+    // --- RENDER DANH SÁCH QUAY THƯỞNG ---
+    function renderItems() {
+      itemsListDOM.innerHTML = '';
+      itemCountBadge.textContent = itemsPool.length;
+
+      itemsPool.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.className = 'item-row';
+
+        const span = document.createElement('span');
+        span.className = 'item-name';
+        span.textContent = item;
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'btn-delete';
+        delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+        delBtn.title = "Xóa mục này";
+        delBtn.onclick = () => deleteItem(index);
+
+        li.appendChild(span);
+        li.appendChild(delBtn);
+        itemsListDOM.appendChild(li);
+      });
+
+      updateReadyState();
+    }
+
+    // --- RENDER LỊCH SỬ TRÚNG THƯỞNG ---
+    function renderWinners() {
+      winnersListDOM.innerHTML = '';
+      winnerCountBadge.textContent = winnersList.length;
+
+      winnersList.forEach((winner, index) => {
+        const li = document.createElement('li');
+        li.className = 'winner-card';
+
+        const info = document.createElement('div');
+        info.className = 'winner-info';
+
+        const rank = document.createElement('span');
+        rank.className = 'winner-index';
+        rank.textContent = index + 1;
+
+        const name = document.createElement('span');
+        name.className = 'winner-name';
+        name.textContent = winner;
+
+        info.appendChild(rank);
+        info.appendChild(name);
+
+        const returnBtn = document.createElement('button');
+        returnBtn.className = 'btn-delete';
+        returnBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i>';
+        returnBtn.title = "Hoàn lại vào danh sách quay";
+        returnBtn.onclick = () => restoreWinner(index);
+
+        li.appendChild(info);
+        li.appendChild(returnBtn);
+        winnersListDOM.appendChild(li);
+      });
+    }
+
+    // --- CẬP NHẬT TRẠNG THÁI SẴN SÀNG CỦA NÚT QUAY ---
+    function updateReadyState() {
+      if (isSpinning) return;
+      if (itemsPool.length === 0) {
+        spinBtn.disabled = true;
+        displayedText.textContent = "HẾT DANH SÁCH";
+        displayedText.className = "displayed-text placeholder-text";
+      } else {
+        spinBtn.disabled = false;
+        // Đặt lại hiển thị mặc định nếu chưa quay
+        if (!displayedText.classList.contains('winner-text')) {
+          displayedText.textContent = "SẴN SÀNG";
+          displayedText.className = "displayed-text placeholder-text";
+        }
+      }
+    }
+
+    // --- THÊM MỤC MỚI ---
+    function handleAddItem() {
+      const val = customInput.value.trim();
+      if (!val) return;
+
+      // Thêm vào danh sách
+      itemsPool.unshift(val);
+      saveItemsToStorage();
+      renderItems();
+
+      // Reset input
+      customInput.value = '';
+      customInput.focus();
+    }
+
+    // --- XÓA MỤC KHỎI DANH SÁCH QUAY ---
+    function deleteItem(index) {
+      if (isSpinning) return;
+      itemsPool.splice(index, 1);
+      saveItemsToStorage();
+      renderItems();
+    }
+
+    // --- XÓA/HOÀN LẠI NGƯỜI TRÚNG THƯỞNG VỀ BỂ QUAY ---
+    function restoreWinner(index) {
+      if (isSpinning) return;
+      const removedWinner = winnersList.splice(index, 1)[0];
+      // Trả lại vào bể quay thưởng
+      itemsPool.push(removedWinner);
+
+      saveWinnersToStorage();
+      saveItemsToStorage();
+
+      renderWinners();
+      renderItems();
+    }
+
+    // --- LÀM MỚI (RESET) TOÀN BỘ LỊCH SỬ TRÚNG ---
+    function handleResetAll() {
+      if (isSpinning || winnersList.length === 0) return;
+      if (confirm("Bạn có muốn trả toàn bộ người đã trúng thưởng về lại danh sách quay không?")) {
+        // Gộp toàn bộ người trúng về lại pool
+        itemsPool = [...itemsPool, ...winnersList];
+        winnersList = [];
+
+        saveItemsToStorage();
+        saveWinnersToStorage();
+
+        renderItems();
+        renderWinners();
+
+        displayedText.textContent = "SẴN SÀNG";
+        displayedText.className = "displayed-text placeholder-text";
+        displayWrapper.className = "rolling-display-wrapper";
+      }
+    }
+
+    // --- BẮT ĐẦU QUAY SỐ (ROLLING ANIMATION) ---
+    function startSpin() {
+      // Kiểm tra điều kiện
+      if (isSpinning || itemsPool.length === 0) return;
+
+      isSpinning = true;
+      spinBtn.disabled = true;
+
+      // Reset style hiển thị
+      displayWrapper.className = "rolling-display-wrapper spinning";
+      displayedText.className = "displayed-text";
+
+      // Chọn trước người chiến thắng ở bước cuối
+      const winnerIndex = Math.floor(Math.random() * itemsPool.length);
+      const winnerName = itemsPool[winnerIndex];
+
+      let currentDelay = 40; // Tốc độ trượt ban đầu cực nhanh (40ms)
+      let ticks = 0;
+      const maxTicks = 35; // Tổng số bước trượt
+
+      function spinStep() {
+        ticks++;
+
+        if (ticks < maxTicks) {
+          // Hiển thị một tên ngẫu nhiên trong pool
+          const randomIndex = Math.floor(Math.random() * itemsPool.length);
+          displayedText.textContent = itemsPool[randomIndex];
+
+          // Kích hoạt lại animation DOM reflow để tạo hiệu ứng trượt nhẹ mỗi lần đổi chữ
+          displayedText.classList.remove('slide-anim');
+          void displayedText.offsetWidth;
+          displayedText.classList.add('slide-anim');
+
+          // Tăng delay chậm ở những bước đầu (trượt nhanh liên tục), tăng nhanh ở những bước cuối (chậm dần)
+          if (ticks > 18) {
+            currentDelay *= 1.15; // Giảm tốc độ rõ rệt
+          } else {
+            currentDelay *= 1.02;
+          }
+
+          setTimeout(spinStep, currentDelay);
+        } else {
+          // BƯỚC CUỐI CÙNG: Hạ cánh chính xác vào tên người chiến thắng
+          displayedText.textContent = winnerName;
+
+          // Kích hoạt hiệu ứng trượt lần cuối
+          displayedText.classList.remove('slide-anim');
+          void displayedText.offsetWidth;
+          displayedText.classList.add('slide-anim');
+
+          // Tách người thắng ra khỏi pool
+          itemsPool.splice(winnerIndex, 1);
+          winnersList.unshift(winnerName); // Thêm lên đầu danh sách trúng
+
+          // Lưu dữ liệu
+          saveItemsToStorage();
+          saveWinnersToStorage();
+
+          // Hiển thị text vinh danh rực rỡ sau 300ms để tạo cảm giác vòng quay đã dừng hẳn
+          setTimeout(() => {
+            displayedText.className = "displayed-text winner-text";
+            displayWrapper.className = "rolling-display-wrapper winner";
+
+            // Cập nhật giao diện
+            renderItems();
+            renderWinners();
+
+            // Kích hoạt hiệu ứng bắn pháo giấy (Confetti) hoành tráng
+            triggerConfetti();
+
+            isSpinning = false;
+            updateReadyState();
+          }, 300);
+        }
+      }
+
+      // Kích hoạt bước trượt đầu tiên
+      setTimeout(spinStep, currentDelay);
+    }
+
+    // --- HIỆU ỨNG BẮN PHÁO GIẤY CHÚC MỪNG ---
+    function triggerConfetti() {
+      if (typeof confetti !== 'undefined') {
+        // Bắn từ 2 bên mép màn hình
+        var count = 200;
+        var defaults = { origin: { y: 0.7 } };
+
+        function fire(particleRatio, opts) {
+          confetti(Object.assign({}, defaults, opts, {
+            particleCount: Math.floor(count * particleRatio)
+          }));
+        }
+
+        fire(0.25, { spread: 26, startVelocity: 55 });
+        fire(0.2, { spread: 60 });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+        fire(0.1, { spread: 120, startVelocity: 45 });
+      }
+    }
+
+    // --- CÔNG BỐ: MỞ MODAL DANH SÁCH TRÚNG THƯỞNG ---
+    function openModal() {
+      if (isSpinning) return;
+      modalWinnersGrid.innerHTML = '';
+
+      if (winnersList.length === 0) {
+        modalWinnersGrid.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 20px;">Chưa có giải thưởng nào được quay.</p>';
+      } else {
+        // Hiển thị danh sách từ giải đầu tiên đến giải gần nhất (đảo ngược lại mảng để đúng thứ tự giải 1, 2, 3...)
+        const reversedWinners = [...winnersList].reverse();
+        reversedWinners.forEach((winner, idx) => {
+          const div = document.createElement('div');
+          div.className = 'modal-winner-badge';
+
+          const rank = document.createElement('div');
+          rank.className = 'modal-rank';
+          rank.textContent = idx + 1;
+
+          const name = document.createElement('div');
+          name.className = 'modal-name';
+          name.textContent = winner;
+
+          div.appendChild(rank);
+          div.appendChild(name);
+          modalWinnersGrid.appendChild(div);
+        });
+      }
+
+      modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
+
+    // --- GẮN CÁC SỰ KIỆN LẮNG NGHE (LISTENERS) ---
+    addBtn.addEventListener('click', handleAddItem);
+
+    customInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleAddItem();
+    });
+
+    spinBtn.addEventListener('click', startSpin);
+
+    resetBtn.addEventListener('click', handleResetAll);
+    announceBtn.addEventListener('click', openModal);
+
+    modalCloseBtn.addEventListener('click', closeModal);
+    modalOkBtn.addEventListener('click', closeModal);
+
+    // Bấm ra ngoài vùng modal để đóng
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeModal();
+    });
+
+    // Bắt phím tắt Spacebar để quay số
+    document.addEventListener('keydown', (e) => {
+      // Nếu đang focus vào input nhập liệu thì không kích hoạt quay số bằng phím Space
+      if (e.code === 'Space' && e.target.tagName !== 'INPUT' && !isSpinning && itemsPool.length > 0) {
+        e.preventDefault(); // Tránh cuộn trang
+        startSpin();
+      }
+    });
+
+    // --- KÍCH HOẠT CHẠY ỨNG DỤNG KHI DOM HOÀN TẤT ---
+    document.addEventListener('DOMContentLoaded', initApp);
+
+  </script>
+</body>
+
+</html>

@@ -571,6 +571,19 @@
 <body>
   <div class="starfield" id="starfield"></div>
 
+  <!-- Thanh điều hướng góc trên bên trái -->
+  <div style="position: absolute; top: 20px; left: 20px; z-index: 100; display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="index.html"
+      style="text-decoration: none; padding: 10px 15px; border: 1px solid var(--saber-blue); background: rgba(0,0,0,0.8); color: var(--saber-blue); border-radius: 4px; font-weight: bold; font-size: 12px; box-shadow: 0 0 10px rgba(77,238,234,0.2);">
+      🏠 TRANG CHỦ
+    </a>
+    <a href="spin2.html"
+      style="text-decoration: none; padding: 10px 15px; border: 1px solid var(--star-yellow); background: rgba(0,0,0,0.8); color: var(--star-yellow); border-radius: 4px; font-weight: bold; font-size: 12px; box-shadow: 0 0 10px rgba(255,232,31,0.2);"
+      title="Chuyển sang phiên bản Premium Lucky Draw">
+      ✨ V2
+    </a>
+  </div>
+
   <div class="header-container">
     <h1 data-i18n="appTitle">GALACTIC SPINNER</h1>
     <div class="lang-selector">
@@ -590,7 +603,7 @@
         <button class="spin-btn" id="spinBtn" data-i18n="spinBtn">SPIN</button>
       </div>
       <div class="controls">
-        <button id="toggleSoundBtn" data-i18n="soundOn">🔊 SOUND ON</button>
+        <button id="toggleSoundBtn" data-i18n="soundOn" style="display: none;">🔊 SOUND ON</button>
         <button id="autoSpinBtn" data-i18n="autoSpin">🔄 AUTO SPIN</button>
       </div>
     </div>
