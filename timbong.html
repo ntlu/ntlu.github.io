@@ -114,6 +114,21 @@
       z-index: 10;
     }
 
+    .cups-container.five-cups {
+      gap: 15px;
+    }
+
+    .cups-container.five-cups .cup-wrapper {
+      width: 90px;
+      height: 120px;
+    }
+
+    .cups-container.five-cups .ball {
+      width: 20px;
+      height: 20px;
+      bottom: 5px;
+    }
+
     /* Cup Styling */
     .cup {
       width: 100%;
@@ -367,32 +382,20 @@
     </header>
     <div class="game-area">
       <div class="cups-container">
-        <!-- Cups will be generated here or static -->
-        <div class="cup-wrapper" data-index="0" role="button" aria-label="Cốc số 1" tabindex="0">
-          <div class="cup">
-            <div class="cup-body"></div>
-            <div class="cup-lid"></div>
-          </div>
-          <div class="ball hidden"></div>
-        </div>
-        <div class="cup-wrapper" data-index="1" role="button" aria-label="Cốc số 2" tabindex="0">
-          <div class="cup">
-            <div class="cup-body"></div>
-            <div class="cup-lid"></div>
-          </div>
-          <div class="ball hidden"></div>
-        </div>
-        <div class="cup-wrapper" data-index="2" role="button" aria-label="Cốc số 3" tabindex="0">
-          <div class="cup">
-            <div class="cup-body"></div>
-            <div class="cup-lid"></div>
-          </div>
-          <div class="ball hidden"></div>
-        </div>
       </div>
       <div id="message-area" class="message-area">Chọn độ khó và bắt đầu!</div>
     </div>
     <div class="controls">
+      <div class="difficulty-selector">
+        <label class="radio-label">
+          <input type="radio" name="cupCount" value="3" checked>
+          <span>3 Cốc</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="cupCount" value="5">
+          <span>5 Cốc</span>
+        </label>
+      </div>
       <div class="difficulty-selector">
         <label class="radio-label">
           <input type="radio" name="difficulty" value="easy" checked>
@@ -441,12 +444,13 @@
       isGameActive: false,
       difficulty: 'easy',
       soundEnabled: true,
+      numCups: 3,
       cupPositions: [0, 1, 2] // Map vị trí visual hiện tại của các cốc [indexDOM -> visualPos]
     };
     // --- DOM Elements ---
     const ui = {
-      cups: document.querySelectorAll('.cup-wrapper'),
-      balls: document.querySelectorAll('.ball'),
+      cups: [],
+      balls: [],
       score: document.getElementById('score'),
       highScore: document.getElementById('high-score'),
       round: document.getElementById('round'),
@@ -454,7 +458,8 @@
       btnStart: document.getElementById('btn-start'),
       btnReset: document.getElementById('btn-reset'),
       btnSound: document.getElementById('btn-sound'),
-      radios: document.querySelectorAll('input[name="difficulty"]')
+      radios: document.querySelectorAll('input[name="difficulty"]'),
+      cupRadios: document.querySelectorAll('input[name="cupCount"]')
     };
     // --- Audio Context ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -495,17 +500,70 @@
           STATE.difficulty = e.target.value;
         });
       });
-      ui.cups.forEach((cup, index) => {
-        cup.addEventListener('click', () => handleCupClick(index));
-        // Keyboard support setup handled globally
+      ui.cupRadios.forEach(r => {
+        r.addEventListener('change', (e) => {
+          if (STATE.isGameActive || STATE.isShuffling) {
+             e.preventDefault();
+             document.querySelector(`input[name="cupCount"][value="${STATE.numCups}"]`).checked = true;
+             return; 
+          }
+          STATE.numCups = parseInt(e.target.value);
+          renderCups(STATE.numCups);
+          resetGame();
+        });
       });
       document.addEventListener('keydown', (e) => {
         if (!STATE.isGameActive || STATE.isShuffling) return;
-        if (['1', '2', '3'].includes(e.key)) {
-          handleCupClick(parseInt(e.key) - 1);
+        if (['1', '2', '3', '4', '5'].includes(e.key)) {
+          const idx = parseInt(e.key) - 1;
+          if (idx < STATE.numCups) handleCupClick(idx);
         }
       });
       // Initial positioning
+      renderCups(STATE.numCups);
+    }
+    
+    function renderCups(count) {
+      const container = document.querySelector('.cups-container');
+      container.innerHTML = '';
+      if (count === 5) container.classList.add('five-cups');
+      else container.classList.remove('five-cups');
+
+      STATE.cupPositions = [];
+      for (let i = 0; i < count; i++) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'cup-wrapper';
+        wrapper.dataset.index = i;
+        wrapper.setAttribute('role', 'button');
+        wrapper.setAttribute('aria-label', `Cốc số ${i+1}`);
+        wrapper.setAttribute('tabindex', '0');
+        
+        const cup = document.createElement('div');
+        cup.className = 'cup';
+        const cupBody = document.createElement('div');
+        cupBody.className = 'cup-body';
+        const cupLid = document.createElement('div');
+        cupLid.className = 'cup-lid';
+        cup.appendChild(cupBody);
+        cup.appendChild(cupLid);
+        
+        const ball = document.createElement('div');
+        ball.className = 'ball hidden';
+        
+        wrapper.appendChild(cup);
+        wrapper.appendChild(ball);
+        container.appendChild(wrapper);
+        
+        STATE.cupPositions.push(i);
+      }
+      
+      ui.cups = document.querySelectorAll('.cup-wrapper');
+      ui.balls = document.querySelectorAll('.ball');
+      
+      ui.cups.forEach((cup, index) => {
+        cup.addEventListener('click', () => handleCupClick(index));
+      });
+      
       resetCupPositions();
     }
     function toggleSound() {
@@ -528,7 +586,7 @@
       resetCupPositions();
       hideBall();
       // 2. Chọn vị trí bóng ngẫu nhiên ban đầu
-      STATE.ballIndex = Math.floor(Math.random() * 3);
+      STATE.ballIndex = Math.floor(Math.random() * STATE.numCups);
       // 3. Show bóng tại vị trí đó
       await revealBall(STATE.ballIndex, true); // true = show briefly
       // 4. Bắt đầu tráo
@@ -542,10 +600,10 @@
     async function shuffleSequence(count, speed) {
       for (let k = 0; k < count; k++) {
         // Chọn 2 cốc ngẫu nhiên để tráo
-        let i = Math.floor(Math.random() * 3);
-        let j = Math.floor(Math.random() * 3);
+        let i = Math.floor(Math.random() * STATE.numCups);
+        let j = Math.floor(Math.random() * STATE.numCups);
         while (i === j) {
-          j = Math.floor(Math.random() * 3);
+          j = Math.floor(Math.random() * STATE.numCups);
         }
         await swapCups(i, j, speed);
         sounds.shuffle();
@@ -589,10 +647,11 @@
         // Container flex gap = 20px. Cup width = 80px. Total unit = 100px.
         // Nhưng responsive width thay đổi.
         // Giải pháp: Tính toạ độ X của slot 0, 1, 2.
-        const slot0 = 0;
-        const slot1 = ui.cups[1].offsetLeft - ui.cups[0].offsetLeft;
-        const slot2 = ui.cups[2].offsetLeft - ui.cups[0].offsetLeft;
-        const slots = [slot0, slot1, slot2];
+        // Giải pháp: Tính toạ độ X của các slot.
+        const slots = [];
+        for (let k = 0; k < STATE.numCups; k++) {
+            slots.push(ui.cups[k].offsetLeft - ui.cups[0].offsetLeft);
+        }
         // Dịch chuyển
         cupA.style.transition = `transform ${duration}ms ease-in-out`;
         cupB.style.transition = `transform ${duration}ms ease-in-out`;
@@ -698,7 +757,8 @@
       });
     }
     function resetCupPositions() {
-      STATE.cupPositions = [0, 1, 2];
+      STATE.cupPositions = [];
+      for(let i=0; i<STATE.numCups; i++) STATE.cupPositions.push(i);
       ui.cups.forEach(c => {
         c.style.transition = 'transform 0.3s ease';
         c.style.transform = 'translateX(0)';

@@ -321,13 +321,11 @@
       opacity: 0;
       transition: opacity 0.3s;
     }
-
     @media (max-width: 768px) {
       .game-title {
         display: none !important;
       }
     }
-
     .back-home {
       position: fixed;
       top: 10px;
@@ -340,7 +338,7 @@
       text-decoration: none;
       color: #00ff88;
       font-weight: bold;
-      box-shadow: 0 2px 10px rgba(0, 255, 136, 0.2);
+      box-shadow: 0 2px 10px rgba(0,255,136,0.2);
       font-size: 14px;
       display: flex;
       align-items: center;
@@ -441,7 +439,6 @@
       map: {
         size: 0,
         grid: [],
-        wallData: {},
         exit: { x: 0, y: 0 },
         lighting: 1.0
       },
@@ -678,49 +675,14 @@
             State.map.grid[ry][rx] = 0;
           }
         }
-        // Assign random colors and characters to walls
-        State.map.wallData = {};
-        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-        for (let y = 0; y < size; y++) {
-          for (let x = 0; x < size; x++) {
-            if (State.map.grid[y][x] === 1) {
-              State.map.grid[y][x] = 10 + Math.floor(Math.random() * 6);
-              State.map.wallData[`${x},${y}`] = chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-          }
-        }
       },
       isWall: (x, y) => {
         const gx = Math.floor(x);
         const gy = Math.floor(y);
         if (gx < 0 || gx >= State.map.size || gy < 0 || gy >= State.map.size) return true;
-        return State.map.grid[gy][gx] >= 10 || State.map.grid[gy][gx] === 1;
+        return State.map.grid[gy][gx] === 1;
       }
     };
-
-    const charCache = {};
-    function getCharCanvas(char) {
-      if (!charCache[char]) {
-        const cvs = document.createElement('canvas');
-        cvs.width = 64; cvs.height = 64;
-        const cCtx = cvs.getContext('2d');
-        cCtx.clearRect(0, 0, 64, 64);
-        cCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        cCtx.font = 'bold 45px Orbitron';
-        cCtx.textAlign = 'center';
-        cCtx.textBaseline = 'middle';
-        cCtx.shadowColor = '#fff';
-        cCtx.shadowBlur = 8;
-        cCtx.fillText(char, 32, 32);
-        charCache[char] = cvs;
-      }
-      return charCache[char];
-    }
-
-    const exitCanvas = document.createElement('canvas');
-    exitCanvas.width = 64; exitCanvas.height = 64;
-    const exitCtx = exitCanvas.getContext('2d');
-
     // --- Rendering System ---
     const Renderer = {
       draw: () => {
@@ -728,21 +690,6 @@
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         if (State.mode === 'menu') return;
-
-        // Update Exit Texture
-        const time = Date.now() / 500;
-        const grad = exitCtx.createConicGradient(time, 32, 32);
-        const colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3', '#FF0000'];
-        colors.forEach((c, idx) => grad.addColorStop(idx / 7, c));
-        exitCtx.fillStyle = grad;
-        exitCtx.fillRect(0, 0, 64, 64);
-        const pulse = (Math.sin(time * 3) + 1) / 2 * 15;
-        exitCtx.beginPath();
-        exitCtx.arc(32, 32, 10 + pulse, 0, Math.PI * 2);
-        exitCtx.lineWidth = 4;
-        exitCtx.strokeStyle = 'rgba(255,255,255,0.8)';
-        exitCtx.stroke();
-
         // Draw Ceiling & Floor with Gradient
         const horizon = canvas.height / 2 + State.player.bobOffset * 100;
         // Ceiling
@@ -825,38 +772,14 @@
           // Distance Fog (Darkness)
           const fog = Math.min(1, 1.5 / (perpWallDist * 0.15)); // Fog factor
           if (hit === 2) { // Exit
-            let texX = Math.floor(wallX * 64);
-            if (side === 0 && rayDirX > 0) texX = 64 - texX - 1;
-            if (side === 1 && rayDirY < 0) texX = 64 - texX - 1;
-            texX = Math.max(0, Math.min(63, texX));
-
-            ctx.globalAlpha = Math.max(fog, 0.7);
-            ctx.drawImage(exitCanvas, texX, 0, 1, 64, i * stripWidth, drawStart, stripWidth + 1, lineHeight);
-            ctx.globalAlpha = 1.0;
-            continue;
-          } else if (hit >= 10) {
-            const colorIndex = hit - 10;
-            const neonColors = [
-              { r: 255, g: 0, b: 85 },    // Neon Pink
-              { r: 0, g: 255, b: 136 },   // Neon Green
-              { r: 0, g: 204, b: 255 },   // Neon Blue
-              { r: 255, g: 204, b: 0 },   // Neon Yellow
-              { r: 255, g: 0, b: 222 },   // Neon Purple
-              { r: 255, g: 85, b: 0 }     // Neon Orange
-            ];
-            const c = neonColors[colorIndex % neonColors.length];
-
-            // Procedural Texture: Vertical Stripes
-            const texture = (Math.floor(wallX * 10) % 2 === 0) ? 0.9 : 1.0;
-
-            const r = c.r * brightness * texture;
-            const g = c.g * brightness * texture;
-            const b = c.b * brightness * texture;
-            color = `rgba(${r}, ${g}, ${b}, ${fog})`;
+            const pulse = (Math.sin(Date.now() / 200) + 1) / 2;
+            // Exit glows through fog (min opacity 0.6)
+            const exitFog = Math.max(fog, 0.6);
+            color = `rgba(${255}, ${200 + pulse * 55}, ${50}, ${exitFog})`;
           } else {
             // Procedural Texture: Vertical Stripes
             const texture = (Math.floor(wallX * 10) % 2 === 0) ? 0.9 : 1.0;
-            // Neon Blue/Cyan Theme fallback
+            // Neon Blue/Cyan Theme
             const r = 0 * brightness * texture;
             const g = 200 * brightness * texture;
             const b = 255 * brightness * texture;
@@ -864,101 +787,9 @@
           }
           ctx.fillStyle = color;
           ctx.fillRect(i * stripWidth, drawStart, stripWidth + 1, lineHeight);
-
-          if (hit >= 10) {
-            const char = State.map.wallData[`${mapX},${mapY}`];
-            if (char) {
-              let texX = Math.floor(wallX * 64);
-              if (side === 0 && rayDirX > 0) texX = 64 - texX - 1;
-              if (side === 1 && rayDirY < 0) texX = 64 - texX - 1;
-              texX = Math.max(0, Math.min(63, texX));
-              const cvs = getCharCanvas(char);
-              ctx.globalAlpha = fog;
-              ctx.drawImage(cvs, texX, 0, 1, 64, i * stripWidth, drawStart, stripWidth + 1, lineHeight);
-              ctx.globalAlpha = 1.0;
-            }
-          }
         }
-        // Draw 3D Bird Main Character
-        Renderer.drawBird();
-
         // Draw Minimap
         Renderer.drawMinimap();
-      },
-      drawBird: () => {
-        const p = State.player;
-
-        ctx.save();
-        // Position at bottom center
-        const birdX = canvas.width / 2;
-        // Base Y position, affected by bobbing
-        const baseY = canvas.height * 0.55; // Moved up by 40% of screen height
-        const birdY = baseY + p.bobOffset * 25; // bobbing effect
-
-        ctx.translate(birdX, birdY);
-
-        // Calculate wing flap based on movement and stamina
-        let wingAngle = 0;
-        let isMoving = p.velocity.x !== 0 || p.velocity.y !== 0;
-        // Add a threshold so slight sliding doesn't look like walking/flying
-        if (Math.abs(p.velocity.x) > 0.01 || Math.abs(p.velocity.y) > 0.01) {
-          // Use bobPhase for wing flapping speed
-          wingAngle = Math.sin(p.bobPhase * 2) * (p.isRunning ? 0.8 : 0.4);
-        }
-
-        // Tail (behind body, pointing down/backwards)
-        ctx.fillStyle = '#f77f00';
-        ctx.beginPath();
-        ctx.moveTo(-10, 20);
-        ctx.lineTo(10, 20);
-        ctx.lineTo(0, 35);
-        ctx.closePath();
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = '#d97706';
-        ctx.stroke();
-
-        // Left Wing
-        ctx.save();
-        ctx.translate(-22, -5);
-        ctx.rotate(wingAngle);
-        ctx.fillStyle = '#f77f00';
-        ctx.beginPath();
-        ctx.ellipse(-10, 0, 15, 8, Math.PI / 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-
-        // Right Wing
-        ctx.save();
-        ctx.translate(22, -5);
-        ctx.rotate(-wingAngle);
-        ctx.fillStyle = '#f77f00';
-        ctx.beginPath();
-        ctx.ellipse(10, 0, 15, 8, -Math.PI / 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-
-        // Body
-        ctx.fillStyle = '#ffd166'; // Yellow body
-        ctx.beginPath();
-        ctx.arc(0, 0, 25, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = '#d97706';
-        ctx.stroke();
-
-        // Back of head/hair (a few feathers on top)
-        ctx.fillStyle = '#f77f00';
-        ctx.beginPath();
-        ctx.moveTo(-6, -20);
-        ctx.lineTo(0, -35);
-        ctx.lineTo(6, -20);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
       },
       drawMinimap: () => {
         const map = State.map;
@@ -968,14 +799,8 @@
         miniCtx.fillRect(0, 0, miniCanvas.width, miniCanvas.height);
         for (let y = 0; y < map.size; y++) {
           for (let x = 0; x < map.size; x++) {
-            if (map.grid[y][x] >= 10 || map.grid[y][x] === 1) {
-              let wallColor = '#444';
-              if (map.grid[y][x] >= 10) {
-                const colorIndex = map.grid[y][x] - 10;
-                const neonHex = ['#ff0055', '#00ff88', '#00ccff', '#ffcc00', '#ff00de', '#ff5500'];
-                wallColor = neonHex[colorIndex % neonHex.length];
-              }
-              miniCtx.fillStyle = wallColor;
+            if (map.grid[y][x] === 1) {
+              miniCtx.fillStyle = '#444';
               miniCtx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
             } else if (map.grid[y][x] === 2) {
               miniCtx.fillStyle = '#ffaa00';

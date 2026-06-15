@@ -1,10 +1,11 @@
 <!doctype html>
 <html lang="vi">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🧠 Toán Vui Cho Bé</title>
-  <style>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Toán Vui Cho Bé</title>
+    <style>
         body {
             box-sizing: border-box;
             font-family: 'Comic Sans MS', cursive, sans-serif;
@@ -27,7 +28,7 @@
             background: white;
             border-radius: 20px;
             padding: 25px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             border: 3px solid #FFB6C1;
         }
 
@@ -36,7 +37,7 @@
             font-size: 2.5em;
             color: #FF69B4;
             margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .section {
@@ -93,7 +94,8 @@
             font-size: 1.1em;
         }
 
-        input, select {
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border: 3px solid #98FB98;
@@ -103,7 +105,8 @@
             box-sizing: border-box;
         }
 
-        input:focus, select:focus {
+        input:focus,
+        select:focus {
             outline: none;
             border-color: #32CD32;
             box-shadow: 0 0 10px rgba(50, 205, 50, 0.3);
@@ -183,7 +186,7 @@
             background: white;
             border-radius: 15px;
             border: 4px solid #87CEEB;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .answer-input {
@@ -299,36 +302,37 @@
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            
+
             .settings-row {
                 grid-template-columns: 1fr 1fr;
                 gap: 10px;
             }
-            
+
             .difficulty-boards {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats {
                 flex-direction: column;
                 gap: 10px;
             }
-            
+
             .question {
                 font-size: 2em;
             }
         }
 
-            .settings-row {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
+        .settings-row {
+            grid-template-columns: 1fr;
+            gap: 10px;
         }
+
         @media (max-width: 768px) {
             .title {
                 display: none !important;
             }
         }
+
         .back-home {
             position: fixed;
             top: 10px;
@@ -340,7 +344,7 @@
             text-decoration: none;
             color: #FF69B4;
             font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             font-size: 14px;
             display: flex;
             align-items: center;
@@ -348,81 +352,104 @@
             font-family: sans-serif;
         }
     </style>
-  <style>@view-transition { navigation: auto; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
- </head>
- <body>
-  <a href="index.html" class="back-home">🏠 Trang chủ</a>
-  <div class="container"><!-- Khu vực thiết lập -->
-   <div class="panel">
-    <h1 class="title">🧠 Toán Vui Cho Bé</h1>
-    <div class="setup-area" id="setupArea">
-     <div class="section">
-      <h3>👤 Thông tin người chơi</h3>
-      <div class="input-group"><label for="playerName">Tên của bạn:</label> <input type="text" id="playerName" placeholder="Nhập tên của bạn..." maxlength="20">
-      </div>
-     </div>
-     <div class="section">
-      <h3>🎮 Cài đặt trò chơi</h3>
-      <div class="settings-row">
-       <div class="setting-group"><label for="gameMode">🎯 Dạng toán:</label> <select id="gameMode"> <option value="add-sub">Cộng / Trừ</option> <option value="mul-div">Nhân / Chia</option> <option value="all">Tất cả</option> </select>
-       </div>
-       <div class="setting-group"><label for="difficulty">⚡ Độ khó:</label> <select id="difficulty"> <option value="easy">Dễ (6 giây/câu)</option> <option value="medium">Trung bình (4 giây/câu)</option> <option value="hard">Khó (3 giây/câu)</option> <option value="custom">Tùy chỉnh</option> </select>
-       </div>
-       <div class="setting-group"><label for="minNumber">🔢 Từ số:</label> <input type="number" id="minNumber" value="0" min="0" max="100">
-       </div>
-       <div class="setting-group"><label for="maxNumber">Đến số:</label> <input type="number" id="maxNumber" value="20" min="1" max="100">
-       </div>
-      </div>
-      <div class="input-group" id="customTimeGroup" style="display: none; margin-top: 15px;"><label for="customTime">⏱️ Thời gian tùy chỉnh (giây):</label> <input type="number" id="customTime" min="1" max="60" value="5" style="width: 100px;">
-      </div>
-     </div><button class="button start-button" onclick="startGame()">🚀 Bắt đầu chơi!</button>
-    </div><!-- Bảng xếp hạng -->
-    <div class="leaderboard">
-     <h3>🏆 Bảng xếp hạng</h3>
-     <div class="difficulty-boards">
-      <div class="difficulty-board">
-       <h4>Dễ</h4>
-       <ul class="score-list" id="easyScores"></ul>
-      </div>
-      <div class="difficulty-board">
-       <h4>Trung bình</h4>
-       <ul class="score-list" id="mediumScores"></ul>
-      </div>
-      <div class="difficulty-board">
-       <h4>Khó</h4>
-       <ul class="score-list" id="hardScores"></ul>
-      </div>
-      <div class="difficulty-board">
-       <h4>Tùy chỉnh</h4>
-       <ul class="score-list" id="customScores"></ul>
-      </div>
-     </div>
+    <style>
+        @view-transition {
+            navigation: auto;
+        }
+    </style>
+    <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+    <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+    <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+</head>
+
+<body>
+    <a href="index.html" class="back-home">🏠 Trang chủ</a>
+    <div class="container"><!-- Khu vực thiết lập -->
+        <div class="panel">
+            <h1 class="title">🧠 Toán Vui Cho Bé</h1>
+            <div class="setup-area" id="setupArea">
+                <div class="section">
+                    <h3>👤 Thông tin người chơi</h3>
+                    <div class="input-group"><label for="playerName">Tên của bạn:</label> <input type="text"
+                            id="playerName" placeholder="Nhập tên của bạn..." maxlength="20">
+                    </div>
+                </div>
+                <div class="section">
+                    <h3>🎮 Cài đặt trò chơi</h3>
+                    <div class="settings-row">
+                        <div class="setting-group"><label for="gameMode">🎯 Dạng toán:</label> <select id="gameMode">
+                                <option value="add-sub">Cộng / Trừ</option>
+                                <option value="mul-div">Nhân / Chia</option>
+                                <option value="all">Tất cả</option>
+                            </select>
+                        </div>
+                        <div class="setting-group"><label for="difficulty">⚡ Độ khó:</label> <select id="difficulty">
+                                <option value="easy">Dễ (6 giây/câu)</option>
+                                <option value="medium">Trung bình (4 giây/câu)</option>
+                                <option value="hard">Khó (3 giây/câu)</option>
+                                <option value="custom">Tùy chỉnh</option>
+                            </select>
+                        </div>
+                        <div class="setting-group"><label for="minNumber">🔢 Từ số:</label> <input type="number"
+                                id="minNumber" value="0" min="0" max="100">
+                        </div>
+                        <div class="setting-group"><label for="maxNumber">Đến số:</label> <input type="number"
+                                id="maxNumber" value="20" min="1" max="100">
+                        </div>
+                    </div>
+                    <div class="input-group" id="customTimeGroup" style="display: none; margin-top: 15px;"><label
+                            for="customTime">⏱️ Thời gian tùy chỉnh (giây):</label> <input type="number" id="customTime"
+                            min="1" max="60" value="5" style="width: 100px;">
+                    </div>
+                </div><button class="button start-button" onclick="startGame()">🚀 Bắt đầu chơi!</button>
+            </div><!-- Bảng xếp hạng -->
+            <div class="leaderboard">
+                <h3>🏆 Bảng xếp hạng</h3>
+                <div class="difficulty-boards">
+                    <div class="difficulty-board">
+                        <h4>Dễ</h4>
+                        <ul class="score-list" id="easyScores"></ul>
+                    </div>
+                    <div class="difficulty-board">
+                        <h4>Trung bình</h4>
+                        <ul class="score-list" id="mediumScores"></ul>
+                    </div>
+                    <div class="difficulty-board">
+                        <h4>Khó</h4>
+                        <ul class="score-list" id="hardScores"></ul>
+                    </div>
+                    <div class="difficulty-board">
+                        <h4>Tùy chỉnh</h4>
+                        <ul class="score-list" id="customScores"></ul>
+                    </div>
+                </div>
+            </div>
+        </div><!-- Khu vực chơi game -->
+        <div class="panel">
+            <div class="game-area" id="gameArea">
+                <div class="stats">
+                    <div class="stat-item"><span class="stat-value" id="currentScore">0</span> <span
+                            class="stat-label">Điểm</span>
+                    </div>
+                    <div class="stat-item"><span class="stat-value" id="currentQuestion">0</span> <span
+                            class="stat-label">Câu hỏi</span>
+                    </div>
+                    <div class="stat-item"><span class="stat-value" id="timeLeft">0</span> <span class="stat-label">Thời
+                            gian</span>
+                    </div>
+                </div>
+                <div class="timer-bar">
+                    <div class="timer-fill" id="timerFill"></div>
+                </div>
+                <div class="question" id="questionDisplay">
+                    Sẵn sàng chưa?
+                </div><input type="number" class="answer-input" id="answerInput" placeholder="Nhập đáp án..." disabled>
+                <div class="message" id="messageDisplay"></div><button class="button" id="playAgainButton"
+                    onclick="resetGame()" style="display: none;">🔄 Chơi lại</button>
+            </div>
+        </div>
     </div>
-   </div><!-- Khu vực chơi game -->
-   <div class="panel">
-    <div class="game-area" id="gameArea">
-     <div class="stats">
-      <div class="stat-item"><span class="stat-value" id="currentScore">0</span> <span class="stat-label">Điểm</span>
-      </div>
-      <div class="stat-item"><span class="stat-value" id="currentQuestion">0</span> <span class="stat-label">Câu hỏi</span>
-      </div>
-      <div class="stat-item"><span class="stat-value" id="timeLeft">0</span> <span class="stat-label">Thời gian</span>
-      </div>
-     </div>
-     <div class="timer-bar">
-      <div class="timer-fill" id="timerFill"></div>
-     </div>
-     <div class="question" id="questionDisplay">
-      Sẵn sàng chưa?
-     </div><input type="number" class="answer-input" id="answerInput" placeholder="Nhập đáp án..." disabled>
-     <div class="message" id="messageDisplay"></div><button class="button" id="playAgainButton" onclick="resetGame()" style="display: none;">🔄 Chơi lại</button>
-    </div>
-   </div>
-  </div>
-  <script>
+    <script>
         // Biến toàn cục cho trò chơi
         let gameState = {
             isPlaying: false,
@@ -440,7 +467,7 @@
         };
 
         // Khởi tạo khi trang web được tải
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadLeaderboard();
             setupEventListeners();
         });
@@ -448,7 +475,7 @@
         // Thiết lập các sự kiện
         function setupEventListeners() {
             // Thay đổi độ khó
-            document.getElementById('difficulty').addEventListener('change', function() {
+            document.getElementById('difficulty').addEventListener('change', function () {
                 const customGroup = document.getElementById('customTimeGroup');
                 if (this.value === 'custom') {
                     customGroup.style.display = 'block';
@@ -458,14 +485,14 @@
             });
 
             // Nhấn Enter để trả lời
-            document.getElementById('answerInput').addEventListener('keypress', function(e) {
+            document.getElementById('answerInput').addEventListener('keypress', function (e) {
                 if (e.key === 'Enter' && gameState.isPlaying) {
                     checkAnswer();
                 }
             });
 
             // Nhấn Enter ở ô tên để bắt đầu
-            document.getElementById('playerName').addEventListener('keypress', function(e) {
+            document.getElementById('playerName').addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     startGame();
                 }
@@ -498,7 +525,7 @@
                 case 'easy': gameState.timePerQuestion = 6; break;
                 case 'medium': gameState.timePerQuestion = 4; break;
                 case 'hard': gameState.timePerQuestion = 3; break;
-                case 'custom': 
+                case 'custom':
                     gameState.timePerQuestion = parseInt(document.getElementById('customTime').value) || 5;
                     break;
             }
@@ -544,7 +571,7 @@
         function generateQuestion() {
             const operations = getAvailableOperations();
             const operation = operations[Math.floor(Math.random() * operations.length)];
-            
+
             let num1, num2, answer, text;
 
             switch (operation) {
@@ -623,7 +650,7 @@
             if (!gameState.isPlaying) return;
 
             const userAnswer = parseInt(document.getElementById('answerInput').value);
-            
+
             if (isNaN(userAnswer)) {
                 showMessage('Vui lòng nhập một số!', 'wrong');
                 return;
@@ -646,9 +673,17 @@
         // Hết thời gian
         function timeUp() {
             if (!gameState.isPlaying) return;
-            
-            showMessage(`⛔ Hết giờ! Đáp án đúng là ${gameState.currentAnswer}`, 'timeout');
-            setTimeout(() => endGame(), 2000);
+
+            const userAnswer = parseInt(document.getElementById('answerInput').value);
+            if (!isNaN(userAnswer) && userAnswer === gameState.currentAnswer) {
+                // Đáp án đúng nhưng hết giờ
+                gameState.score += 10;
+                showMessage('✅ Đúng rồi! Tuyệt vời! (Tự động nộp)', 'correct');
+                setTimeout(() => nextQuestion(), 1500);
+            } else {
+                showMessage(`⛔ Hết giờ! Đáp án đúng là ${gameState.currentAnswer}`, 'timeout');
+                setTimeout(() => endGame(), 2000);
+            }
         }
 
         // Hiển thị thông báo
@@ -662,16 +697,16 @@
         function endGame() {
             gameState.isPlaying = false;
             clearInterval(gameState.timer);
-            
+
             document.getElementById('answerInput').disabled = true;
             document.getElementById('playAgainButton').style.display = 'inline-block';
-            
+
             // Lưu điểm vào bảng xếp hạng
             saveScore();
             loadLeaderboard();
 
             // Hiển thị kết quả cuối game
-            document.getElementById('questionDisplay').textContent = 
+            document.getElementById('questionDisplay').textContent =
                 `🎉 Kết thúc! Bạn đã trả lời đúng ${gameState.currentQuestion - 1} câu và đạt ${gameState.score} điểm!`;
         }
 
@@ -679,11 +714,11 @@
         function resetGame() {
             gameState.isPlaying = false;
             clearInterval(gameState.timer);
-            
+
             document.getElementById('setupArea').classList.remove('hidden');
             document.getElementById('gameArea').classList.remove('active');
             document.getElementById('answerInput').disabled = true;
-            
+
             // Reset hiển thị
             document.getElementById('currentScore').textContent = '0';
             document.getElementById('currentQuestion').textContent = '0';
@@ -723,15 +758,15 @@
         // Tải bảng xếp hạng
         function loadLeaderboard() {
             const difficulties = ['easy', 'medium', 'hard', 'custom'];
-            
+
             difficulties.forEach(difficulty => {
                 const scores = getScores(difficulty);
                 const listEl = document.getElementById(`${difficulty}Scores`);
-                
+
                 if (scores.length === 0) {
                     listEl.innerHTML = '<li class="score-item">Chưa có điểm nào</li>';
                 } else {
-                    listEl.innerHTML = scores.map((score, index) => 
+                    listEl.innerHTML = scores.map((score, index) =>
                         `<li class="score-item">
                             <span>${index + 1}. ${score.name}</span>
                             <span>${score.score}đ</span>
@@ -741,5 +776,7 @@
             });
         }
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'995a99dc53059f92',t:'MTc2MTY1NjI2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'995a99dc53059f92',t:'MTc2MTY1NjI2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
+</body>
+
 </html>

@@ -3,51 +3,74 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Né Chướng Ngại Vật</title>
+  <title>Né Chướng Ngại Vật - Neon Space</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
-      background-color: #222;
-      color: white;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #050510;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
       text-align: center;
       margin: 0;
       padding: 10px;
+      overflow-x: hidden;
     }
 
     canvas {
-      border: 3px solid #fff;
-      background-color: #111;
+      border: 2px solid #0ff;
+      box-shadow: 0 0 15px #0ff, inset 0 0 15px #0ff;
+      background-color: #020205;
       display: block;
       margin: 10px auto;
       max-width: 95%;
       height: auto;
+      transition: transform 0.05s;
+    }
+
+    .shake {
+      transform: translate(5px, 5px) rotate(1deg);
+    }
+    .shake-reverse {
+      transform: translate(-5px, -5px) rotate(-1deg);
+    }
+
+    h1 {
+      text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
+      margin-bottom: 5px;
     }
 
     .controls {
       margin-bottom: 10px;
-      background: #333;
-      padding: 10px;
+      background: rgba(20, 20, 40, 0.8);
+      padding: 15px;
       border-radius: 8px;
       display: inline-block;
+      border: 1px solid #333;
+      box-shadow: 0 0 10px rgba(0,255,255,0.2);
     }
 
     select, button, input[type="color"] {
+      font-family: 'Orbitron', sans-serif;
       font-size: 14px;
       padding: 8px 12px;
       margin: 5px;
       border-radius: 5px;
-      border: none;
-    }
-
-    button {
-      background-color: #27ae60;
-      color: white;
-      font-weight: bold;
+      border: 1px solid #0ff;
+      background: #111;
+      color: #0ff;
       cursor: pointer;
     }
 
+    button {
+      background-color: #0ff;
+      color: #000;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
     button:hover {
-      background-color: #2ecc71;
+      box-shadow: 0 0 15px #0ff;
+      background-color: #fff;
     }
 
     .scores {
@@ -57,10 +80,18 @@
       gap: 15px;
       flex-wrap: wrap;
     }
+    
+    .scores p {
+      padding: 5px 15px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.1);
+      font-weight: bold;
+    }
 
     label {
       margin: 5px;
       font-size: 14px;
+      color: #aaa;
     }
 
     /* Mobile Controls */
@@ -74,29 +105,27 @@
     .nav-btn {
       width: 80px;
       height: 80px;
-      background: #444;
-      color: white;
-      border: none;
+      background: rgba(0, 255, 255, 0.1);
+      color: #0ff;
+      border: 2px solid #0ff;
       border-radius: 50%;
       font-size: 30px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 5px 0 #111;
+      box-shadow: 0 0 10px #0ff, inset 0 0 10px #0ff;
       touch-action: manipulation;
       user-select: none;
     }
     .nav-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 2px 0 #111;
-      background: #555;
+      background: #0ff;
+      color: #000;
     }
 
     @media (max-width: 768px) {
       .mobile-nav {
         display: flex;
       }
-      /* Ẩn tiêu đề và chọn số người chơi trên mobile */
       h1, #modeSelect, label:has(#modeSelect) {
         display: none !important;
       }
@@ -106,31 +135,31 @@
       top: 10px;
       left: 10px;
       z-index: 2000;
-      background: #333;
+      background: rgba(20, 20, 40, 0.8);
       padding: 8px 12px;
       border-radius: 8px;
       text-decoration: none;
-      color: white;
+      color: #0ff;
       font-weight: bold;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border: 1px solid #0ff;
+      box-shadow: 0 0 5px #0ff;
       font-size: 14px;
       display: flex;
       align-items: center;
       gap: 5px;
-      border: 1px solid #555;
     }
   </style>
 </head>
 <body>
   <a href="index.html" class="back-home">🏠 Trang chủ</a>
-  <h1>🎮 Trò chơi Né Chướng Ngại Vật</h1>
+  <h1>🚀 NEON DODGER</h1>
 
   <div class="controls">
-    <label>Chế độ chơi:
+    <label>Chế độ:
       <select id="modeSelect">
-        <option value="1">1 Người chơi</option>
-        <option value="2">2 Người chơi</option>
-        <option value="3">3 Người chơi</option>
+        <option value="1">1 Người</option>
+        <option value="2">2 Người</option>
+        <option value="3">3 Người</option>
       </select>
     </label>
 
@@ -145,7 +174,7 @@
 
     <div id="colorPickers"></div>
 
-    <button id="startBtn">Bắt đầu trò chơi</button>
+    <button id="startBtn">BẮT ĐẦU</button>
   </div>
 
   <canvas id="gameCanvas" width="600" height="600"></canvas>
@@ -156,9 +185,9 @@
   </div>
 
   <div class="scores">
-    <p id="score1">Người chơi 1: 0</p>
-    <p id="score2" style="display:none">Người chơi 2: 0</p>
-    <p id="score3" style="display:none">Người chơi 3: 0</p>
+    <p id="score1" style="color: #ff0055; border: 1px solid #ff0055; display:none;">P1: 0</p>
+    <p id="score2" style="color: #00ff88; border: 1px solid #00ff88; display:none;">P2: 0</p>
+    <p id="score3" style="color: #00ccff; border: 1px solid #00ccff; display:none;">P3: 0</p>
   </div>
 
   <script>
@@ -176,170 +205,441 @@
 
     let gameWidth = canvas.width;
     let gameHeight = canvas.height;
-    let playerSize = 30;
-    let playerSpeed = 5;
-    let obstacleSize = 30;
-    let obstacleSpeed = 2;
-
+    
+    // --- System Variables ---
     let players = [];
     let obstacles = [];
+    let particles = [];
+    let stars = [];
     let scores = [];
     let isGameOver = false;
-    let gameInterval;
-    let createObstacleInterval;
     let keysPressed = {};
     let currentDifficulty = "medium";
+    let frameCount = 0;
+    let animationId;
+    
+    // Shake effect
+    let shakeAmount = 0;
+    
+    // Difficulty
+    let obstacleBaseSpeed = 2;
+    let spawnRate = 60; // Frames between spawns
 
     const playerKeys = [
       { left: "ArrowLeft", right: "ArrowRight" },
       { left: "a", right: "d" },
       { left: "j", right: "l" }
     ];
-
-    const defaultColors = ["red", "lime", "yellow"];
-    const difficultyMultipliers = {
-      easy: 1.05,
-      medium: 1.15,
-      hard: 1.3,
-      extreme: 1.5
+    const defaultColors = ["#ff0055", "#00ff88", "#00ccff"];
+    const difficultySettings = {
+      easy: { speedMult: 1.05, spawnRateBase: 70 },
+      medium: { speedMult: 1.15, spawnRateBase: 50 },
+      hard: { speedMult: 1.3, spawnRateBase: 35 },
+      extreme: { speedMult: 1.5, spawnRateBase: 20 }
     };
 
+    // --- Visual FX ---
+    function initStars() {
+      stars = [];
+      for(let i=0; i<100; i++) {
+        stars.push({
+          x: Math.random() * gameWidth,
+          y: Math.random() * gameHeight,
+          size: Math.random() * 2 + 0.5,
+          speed: Math.random() * 3 + 1,
+          brightness: Math.random()
+        });
+      }
+    }
+
+    function drawStars() {
+      ctx.globalCompositeOperation = 'source-over';
+      stars.forEach(s => {
+        s.y += s.speed;
+        if(s.y > gameHeight) {
+          s.y = 0;
+          s.x = Math.random() * gameWidth;
+        }
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.brightness})`;
+        ctx.fillRect(s.x, s.y, s.size, s.size);
+      });
+    }
+
+    function spawnParticles(x, y, color, count, type="exhaust") {
+      for(let i=0; i<count; i++) {
+        particles.push({
+          x: x,
+          y: y,
+          vx: type === "exhaust" ? (Math.random()-0.5)*2 : (Math.random()-0.5)*8,
+          vy: type === "exhaust" ? Math.random()*3+2 : (Math.random()-0.5)*8,
+          life: 1.0,
+          decay: type === "exhaust" ? 0.05 : 0.02,
+          color: color,
+          size: type === "exhaust" ? Math.random()*3+2 : Math.random()*5+2
+        });
+      }
+    }
+
+    function drawParticles() {
+      ctx.globalCompositeOperation = 'lighter';
+      for(let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+        
+        if(p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI*2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    function applyShake() {
+      if(shakeAmount > 0) {
+        canvas.className = frameCount % 2 === 0 ? "shake" : "shake-reverse";
+        shakeAmount--;
+      } else {
+        canvas.className = "";
+      }
+    }
+
+    // --- UI Setup ---
     function updateColorPickers() {
       const playerCount = parseInt(modeSelect.value);
       colorPickersContainer.innerHTML = "";
       for (let i = 0; i < playerCount; i++) {
         const label = document.createElement("label");
-        label.textContent = `Màu người chơi ${i + 1}: `;
+        label.textContent = `P${i + 1}: `;
         const input = document.createElement("input");
         input.type = "color";
         input.className = "playerColor";
         input.value = defaultColors[i];
+        
+        // Cập nhật màu viền điểm ngay khi đổi màu
+        input.addEventListener('change', (e) => {
+           scoreEls[i].style.color = e.target.value;
+           scoreEls[i].style.borderColor = e.target.value;
+        });
+        
         label.appendChild(input);
         colorPickersContainer.appendChild(label);
       }
     }
 
+    // --- Game Logic ---
     function resetGame(playerCount) {
-      clearInterval(gameInterval);
-      clearInterval(createObstacleInterval);
+      if(animationId) cancelAnimationFrame(animationId);
+      
       isGameOver = false;
       obstacles = [];
+      particles = [];
       scores = new Array(playerCount).fill(0);
       players = [];
       keysPressed = {};
+      frameCount = 0;
+      shakeAmount = 0;
 
       currentDifficulty = difficultySelect.value;
+      obstacleBaseSpeed = 3;
+      spawnRate = difficultySettings[currentDifficulty].spawnRateBase;
 
       const colorInputs = document.querySelectorAll(".playerColor");
       for (let i = 0; i < playerCount; i++) {
+        const c = colorInputs[i]?.value || defaultColors[i];
         players.push({
-          x: gameWidth / (playerCount + 1) * (i + 1) - playerSize / 2,
-          y: gameHeight - playerSize - 10,
-          color: colorInputs[i]?.value || defaultColors[i],
+          x: gameWidth / (playerCount + 1) * (i + 1),
+          y: gameHeight - 50,
+          color: c,
           leftKey: playerKeys[i].left,
-          rightKey: playerKeys[i].right
+          rightKey: playerKeys[i].right,
+          size: 15, // half width of ship
+          isDead: false
         });
         scoreEls[i].style.display = "block";
+        scoreEls[i].style.color = c;
+        scoreEls[i].style.borderColor = c;
+        scoreEls[i].innerText = `P${i + 1}: 0`;
       }
 
       for (let i = playerCount; i < 3; i++) {
         scoreEls[i].style.display = "none";
       }
 
-      document.addEventListener("keydown", (e) => {
-        keysPressed[e.key] = true;
-      });
+      initStars();
+      
+      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("keyup", handleKeyUp);
 
-      document.addEventListener("keyup", (e) => {
-        keysPressed[e.key] = false;
-      });
-
-      startLoop();
+      gameLoop();
     }
-
-    function startLoop() {
-      obstacleSpeed = 2;
-      gameInterval = setInterval(updateGame, 1000 / 60);
-      createObstacleInterval = setInterval(createObstacle, 500);
-    }
+    
+    function handleKeyDown(e) { keysPressed[e.key] = true; }
+    function handleKeyUp(e) { keysPressed[e.key] = false; }
 
     function createObstacle() {
-      const x = Math.random() * (gameWidth - obstacleSize);
-      const color = ["#0ff", "#f0f", "#ff0"][Math.floor(Math.random() * 3)];
-      obstacles.push({ x, y: -obstacleSize, color });
+      const typeRand = Math.random();
+      const x = Math.random() * (gameWidth - 40) + 20;
+      
+      let ob = {
+        x: x,
+        y: -30,
+        size: Math.random() * 15 + 15,
+        type: 'straight',
+        color: '#ff0',
+        vx: 0,
+        vy: obstacleBaseSpeed + Math.random()*2
+      };
+
+      if (typeRand > 0.85) {
+        // Laser
+        ob.type = 'laser';
+        ob.color = '#f0f';
+        ob.timer = 60; // 1s warning
+        ob.width = 15;
+      } else if (typeRand > 0.6) {
+        // Chaser
+        ob.type = 'chaser';
+        ob.color = '#f00';
+        ob.vy = obstacleBaseSpeed * 0.8;
+      } else if (typeRand > 0.3) {
+        // Diagonal
+        ob.type = 'diagonal';
+        ob.color = '#0ff';
+        ob.vx = (Math.random() > 0.5 ? 1 : -1) * (Math.random()*2 + 1);
+        ob.vy = obstacleBaseSpeed * 1.2;
+      }
+
+      obstacles.push(ob);
+    }
+
+    function gameLoop() {
+      if (isGameOver && particles.length === 0) return; // wait for explosions to finish
+      
+      updateGame();
+      drawGame();
+      
+      animationId = requestAnimationFrame(gameLoop);
     }
 
     function updateGame() {
-      if (isGameOver) return;
-
-      players.forEach(player => {
-        if (keysPressed[player.leftKey] && player.x > 0) {
-          player.x -= playerSpeed;
+      frameCount++;
+      
+      if (!isGameOver) {
+        // Spawn obstacles
+        if (frameCount % spawnRate === 0) {
+          createObstacle();
         }
-        if (keysPressed[player.rightKey] && player.x + playerSize < gameWidth) {
-          player.x += playerSpeed;
+
+        // Increase difficulty
+        if (frameCount % 600 === 0) { // every 10 seconds
+          obstacleBaseSpeed *= difficultySettings[currentDifficulty].speedMult;
+          spawnRate = Math.max(10, Math.floor(spawnRate * 0.9));
         }
-      });
 
-      obstacles.forEach(ob => ob.y += obstacleSpeed);
-
-      obstacles.forEach(ob => {
-        players.forEach((player, index) => {
-          if (
-            ob.y + obstacleSize > player.y &&
-            ob.y < player.y + playerSize &&
-            ob.x + obstacleSize > player.x &&
-            ob.x < player.x + playerSize
-          ) {
-            gameOver();
+        // Move players
+        players.forEach(player => {
+          if(player.isDead) return;
+          
+          if (keysPressed[player.leftKey] && player.x - player.size > 0) {
+            player.x -= 6;
+          }
+          if (keysPressed[player.rightKey] && player.x + player.size < gameWidth) {
+            player.x += 6;
+          }
+          
+          // Exhaust particles
+          if(frameCount % 2 === 0) {
+             spawnParticles(player.x, player.y + 10, player.color, 2, "exhaust");
           }
         });
-      });
+      }
 
-      obstacles = obstacles.filter(ob => {
-        if (ob.y > gameHeight) {
-          scores.forEach((score, i) => {
-            scores[i] += 1;
-            if (scores[i] % 20 === 0) {
-              obstacleSpeed *= difficultyMultipliers[currentDifficulty];
+      // Move & Update obstacles
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        let ob = obstacles[i];
+        
+        if (ob.type === 'laser') {
+          ob.timer--;
+          if(ob.timer < 0) ob.timer = 0; // Active
+          // Lasers disappear after a short active period
+          if(ob.timer === 0) {
+             ob.life = ob.life || 20;
+             ob.life--;
+             if(ob.life <= 0) {
+                obstacles.splice(i, 1);
+                continue;
+             }
+          }
+        } else {
+          ob.x += ob.vx;
+          ob.y += ob.vy;
+          
+          if (ob.type === 'chaser') {
+            // Find closest alive player
+            let closest = null;
+            let minDist = Infinity;
+            players.forEach(p => {
+              if(p.isDead) return;
+              let dist = Math.abs(p.x - ob.x);
+              if(dist < minDist) { minDist = dist; closest = p; }
+            });
+            if(closest) {
+              if(ob.x < closest.x) ob.vx += 0.05;
+              else ob.vx -= 0.05;
+              // limit horizontal speed
+              if(ob.vx > 3) ob.vx = 3;
+              if(ob.vx < -3) ob.vx = -3;
+            }
+          }
+          
+          // Bounce diagonal off walls
+          if(ob.type === 'diagonal') {
+             if(ob.x < 0 || ob.x > gameWidth) ob.vx *= -1;
+          }
+        }
+
+        // Collision Check (only if game is not over)
+        if(!isGameOver) {
+          players.forEach((player, pIdx) => {
+            if(player.isDead) return;
+            
+            let hit = false;
+            if (ob.type === 'laser') {
+               if (ob.timer === 0 && Math.abs(player.x - ob.x) < ob.width/2 + player.size) {
+                  hit = true;
+               }
+            } else {
+               // Circle/Box approx collision
+               let dx = player.x - ob.x;
+               let dy = player.y - ob.y;
+               let distance = Math.sqrt(dx*dx + dy*dy);
+               if(distance < player.size + ob.size) {
+                  hit = true;
+               }
+            }
+
+            if(hit) {
+               player.isDead = true;
+               spawnParticles(player.x, player.y, player.color, 50, "explosion");
+               shakeAmount = 20;
+               
+               // Check if all players dead
+               if(players.every(p => p.isDead)) {
+                  isGameOver = true;
+                  setTimeout(() => alert("TRÒ CHƠI KẾT THÚC!"), 1000);
+               }
             }
           });
-          return false;
         }
-        return true;
-      });
 
-      drawGame();
+        // Remove off-screen obstacles and add score
+        if (ob.y > gameHeight && ob.type !== 'laser') {
+          if(!isGameOver) {
+            scores.forEach((score, i) => {
+              if(!players[i].isDead) {
+                 scores[i] += 1;
+                 scoreEls[i].innerText = `P${i + 1}: ${scores[i]}`;
+              }
+            });
+          }
+          obstacles.splice(i, 1);
+        }
+      }
     }
 
     function drawGame() {
-      ctx.clearRect(0, 0, gameWidth, gameHeight);
+      // Clear with dark trail effect
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = 'rgba(2, 2, 5, 0.4)';
+      ctx.fillRect(0, 0, gameWidth, gameHeight);
 
+      drawStars();
+
+      // Draw players
+      ctx.globalCompositeOperation = 'lighter';
       players.forEach(player => {
+        if(player.isDead) return;
+        
+        ctx.save();
+        ctx.translate(player.x, player.y);
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = player.color;
         ctx.fillStyle = player.color;
-        ctx.fillRect(player.x, player.y, playerSize, playerSize);
+        
+        ctx.beginPath();
+        ctx.moveTo(0, -player.size);
+        ctx.lineTo(player.size, player.size);
+        ctx.lineTo(0, player.size - 5);
+        ctx.lineTo(-player.size, player.size);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.restore();
       });
 
+      // Draw obstacles
       obstacles.forEach(ob => {
-        ctx.fillStyle = ob.color;
-        ctx.fillRect(ob.x, ob.y, obstacleSize, obstacleSize);
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        
+        if (ob.type === 'laser') {
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = ob.color;
+          if (ob.timer > 0) {
+             // Warning
+             ctx.fillStyle = `rgba(255, 0, 255, ${Math.abs(Math.sin(frameCount*0.2)) * 0.5})`;
+             ctx.fillRect(ob.x - ob.width/2, 0, ob.width, gameHeight);
+          } else {
+             // Active beam
+             ctx.fillStyle = '#fff';
+             ctx.fillRect(ob.x - ob.width/2, 0, ob.width, gameHeight);
+             ctx.fillStyle = ob.color;
+             ctx.fillRect(ob.x - ob.width/2 + 5, 0, ob.width - 10, gameHeight);
+          }
+        } else {
+          ctx.translate(ob.x, ob.y);
+          ctx.rotate(frameCount * 0.05 * (ob.vx > 0 ? 1 : -1)); // spin
+          
+          ctx.shadowBlur = 15;
+          ctx.shadowColor = ob.color;
+          
+          // Draw polygon asteroid
+          ctx.beginPath();
+          let sides = ob.type === 'chaser' ? 3 : (ob.type === 'diagonal' ? 4 : 6);
+          for(let i=0; i<sides; i++) {
+             let angle = i * Math.PI*2/sides;
+             let r = ob.size * (0.8 + 0.2*Math.sin(angle*3)); // irregular
+             if(i===0) ctx.moveTo(r*Math.cos(angle), r*Math.sin(angle));
+             else ctx.lineTo(r*Math.cos(angle), r*Math.sin(angle));
+          }
+          ctx.closePath();
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.fillStyle = ob.color;
+          ctx.globalAlpha = 0.5;
+          ctx.fill();
+        }
+        ctx.restore();
       });
 
-      scores.forEach((s, i) => {
-        scoreEls[i].innerText = `Người chơi ${i + 1}: ${s}`;
-      });
-    }
-
-    function gameOver() {
-      isGameOver = true;
-      clearInterval(gameInterval);
-      clearInterval(createObstacleInterval);
-      alert("Trò chơi kết thúc!");
+      drawParticles();
+      applyShake();
     }
 
     startBtn.addEventListener("click", () => {
       const mode = parseInt(modeSelect.value);
       resetGame(mode);
+      startBtn.innerText = "CHƠI LẠI";
     });
 
     modeSelect.addEventListener("change", updateColorPickers);

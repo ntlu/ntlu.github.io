@@ -36,26 +36,33 @@
       background-color: #ec407a;
     }
 
+    :root {
+      --tile-size: 80px;
+      --grid-size: 4;
+    }
+
     #puzzle-container {
       display: grid;
-      grid-template-columns: repeat(4, 80px);
+      /* grid-template-columns set via JS */
       grid-gap: 10px;
       justify-content: center;
       margin: 20px auto;
       padding: 10px;
       background-color: #fff0f5;
       border-radius: 15px;
-      max-width: 360px;
+      width: max-content;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .puzzle-tile {
-      width: 80px;
-      height: 80px;
+      width: var(--tile-size);
+      height: var(--tile-size);
       background-color: #f8bbd0;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: calc(var(--tile-size) * 0.4);
       border-radius: 10px;
       cursor: pointer;
       transition: transform 0.2s;
@@ -106,6 +113,16 @@
 <body>
   <a href="index.html" class="back-home">🏠 Trang chủ</a>
   <h1>🎉 Ghép Số Vui Nhộn! 🎉</h1>
+  <div class="controls" style="margin: 15px;">
+    <label style="font-size: 18px; color: #e91e63; font-weight: bold;">Độ khó:
+      <select id="grid-size-select" style="font-size: 18px; padding: 5px; border-radius: 5px; border: 2px solid #ff80ab; outline: none; cursor: pointer; color: #e91e63;">
+        <option value="2">Mầm non (2x2)</option>
+        <option value="3">Tiểu học (3x3)</option>
+        <option value="4" selected>Trung học (4x4)</option>
+        <option value="5">Đại học (5x5)</option>
+      </select>
+    </label>
+  </div>
   <div id="timer">⏱ Thời gian: 00:00</div>
   <button id="shuffle-button">Bắt đầu / Trộn</button>
   <div id="puzzle-container"></div>
@@ -119,8 +136,9 @@
     const timerDisplay = document.getElementById("timer");
     const shuffleButton = document.getElementById("shuffle-button");
     const topScoresList = document.getElementById("top-scores");
+    const gridSizeSelect = document.getElementById("grid-size-select");
 
-    const gridSize = 4;
+    let gridSize = 4;
     let numbers = [];
     let emptyTile = null;
     let moves = 0;
@@ -130,10 +148,21 @@
     let topScores = [];
 
     function init() {
+      updateTileSize();
       loadScores();
       generateInitialNumbers();
       createPuzzleBoard();
     }
+
+    function updateTileSize() {
+      const availableWidth = window.innerWidth - 60; // margins and padding
+      const gapSpace = (gridSize - 1) * 10;
+      const maxTileWidth = Math.floor((availableWidth - gapSpace) / gridSize);
+      const tileSize = Math.max(30, Math.min(80, maxTileWidth));
+      document.documentElement.style.setProperty('--tile-size', tileSize + 'px');
+    }
+
+    window.addEventListener("resize", updateTileSize);
 
     function generateInitialNumbers() {
       numbers = [];
@@ -146,7 +175,7 @@
 
     function createPuzzleBoard() {
       puzzleContainer.innerHTML = "";
-      puzzleContainer.style.gridTemplateColumns = `repeat(${gridSize}, 80px)`;
+      puzzleContainer.style.gridTemplateColumns = `repeat(${gridSize}, var(--tile-size))`;
       numbers.forEach((num, index) => {
         const tile = document.createElement("div");
         tile.classList.add("puzzle-tile");
@@ -184,7 +213,7 @@
       }
       const rowFromBottom = gridSize - Math.floor(arr.indexOf(null) / gridSize);
       if (gridSize % 2 === 0) {
-        return (invCount + rowFromBottom) % 2 === 0;
+        return (invCount + rowFromBottom) % 2 !== 0;
       }
       return invCount % 2 === 0;
     }
@@ -235,26 +264,32 @@
       gameStarted = true;
     }
 
-    function stopGame() {
+    function stopGame(completed = true) {
       clearInterval(timerInterval);
       gameStarted = false;
-      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-      alert(`🎉 Hoàn thành sau ${formatTime(elapsedTime)} với ${moves} bước!`);
-      saveScore(elapsedTime);
+      if(completed) {
+        const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+        alert(`🎉 Hoàn thành sau ${formatTime(elapsedTime)} với ${moves} bước!`);
+        saveScore(elapsedTime);
+      } else {
+        timerDisplay.textContent = `⏱ Thời gian: 00:00`;
+      }
     }
 
     function saveScore(time) {
       topScores.push({ time, moves });
       topScores.sort((a, b) => a.time - b.time);
       topScores = topScores.slice(0, 10);
-      localStorage.setItem("topScores", JSON.stringify(topScores));
+      localStorage.setItem(`topScores_${gridSize}`, JSON.stringify(topScores));
       displayTopScores();
     }
 
     function loadScores() {
-      const saved = localStorage.getItem("topScores");
+      const saved = localStorage.getItem(`topScores_${gridSize}`);
       if (saved) {
         topScores = JSON.parse(saved);
+      } else {
+        topScores = [];
       }
       displayTopScores();
     }
@@ -271,6 +306,17 @@
     shuffleButton.addEventListener("click", () => {
       if (gameStarted && !confirm("Bạn có chắc muốn chơi lại không?")) return;
       shuffleNumbers();
+    });
+
+    gridSizeSelect.addEventListener("change", (e) => {
+      if (gameStarted && !confirm("Đang chơi dở, bạn có chắc muốn đổi độ khó?")) {
+        e.target.value = gridSize;
+        return;
+      }
+      gridSize = parseInt(e.target.value);
+      document.documentElement.style.setProperty('--grid-size', gridSize);
+      stopGame(false);
+      init();
     });
 
     window.addEventListener("load", init);
