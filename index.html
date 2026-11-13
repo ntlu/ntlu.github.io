@@ -8,17 +8,24 @@
     <script src="/_sdk/element_sdk.js"></script>
     <style>
         /* --- Background + ambient effects (kept from original) --- */
-        body {
-            box-sizing: border-box;
+        html, body {
+            width: 100%;
+            height: 100%;
             margin: 0;
             padding: 0;
-            height: 100%;
             overflow: hidden;
+            overscroll-behavior: none;
+            position: fixed;
+            inset: 0;
+            touch-action: none;
+        }
+
+        body {
+            box-sizing: border-box;
             font-family: 'Inter', 'Arial', sans-serif;
             background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460, #533483);
             background-size: 400% 400%;
             animation: gradientShift 8s ease infinite;
-            position: relative;
             color: #fff;
         }
 
@@ -183,7 +190,9 @@
             padding: 18px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
             backdrop-filter: blur(6px);
-            overflow-y: auto;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
             z-index: 30;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
@@ -193,7 +202,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin-bottom: 12px
+            margin-bottom: 12px;
+            flex-shrink: 0;
         }
 
         .panel-title {
@@ -210,7 +220,14 @@
         .games-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
+            padding-right: 4px;
         }
 
         .game-card {
@@ -266,7 +283,8 @@
             display: flex;
             gap: 8px;
             margin-top: 12px;
-            justify-content: space-between
+            justify-content: space-between;
+            flex-shrink: 0;
         }
 
         .btn {
@@ -501,6 +519,7 @@
         });
     </script>
 
+  <script src="./fullscreen.js"></script>
 </body>
 
 </html>
