@@ -1,86 +1,147 @@
 /**
  * tangram-bundle.js
- * Tất cả JS được gộp vào 1 file để chạy qua file:// mà không cần HTTP server.
- * Không dùng ES6 import/export.
+ * Trò chơi Tangram chuẩn toán học (tham khảo cơ chế MathPlayground):
+ * - 7 mảnh Tangram tỉ lệ chuẩn (khớp khít 100%, không hở)
+ * - Kéo thả mượt mà từ khay lên bảng
+ * - Xoay 45° (nút, cuộn chuột, hoặc nhấp đúp vào mảnh) & Lật mảnh (cho hình bình hành)
+ * - Hút nam châm thông minh (xét đối xứng xoay + mảnh cùng hình dạng)
+ * - Âm thanh Web Audio API không cần file mp3 ngoài
  */
 
 'use strict';
 
 /* ============================================================
-   1. PIECE DEFINITIONS
+   1. PIECE DEFINITIONS (Tỉ lệ chuẩn Tangram, đơn vị u = 60)
    ============================================================ */
 const PIECE_DEFS = {
   LT1: {
     label: 'Tam giác lớn 1', color: '#FFB3BA', stroke: '#FF8A94',
-    // Tam giác vuông cân, cạnh góc vuông = 200, đỉnh ở trên
-    points: '0,-100 141,100 -141,100'
+    points: '-120,40 120,40 0,-80'
   },
   LT2: {
     label: 'Tam giác lớn 2', color: '#FFDFBA', stroke: '#FFB870',
-    points: '0,-100 141,100 -141,100'
+    points: '-120,40 120,40 0,-80'
   },
   MT: {
     label: 'Tam giác vừa', color: '#FFF0BA', stroke: '#FFD060',
-    points: '0,-70 100,70 -100,70'
+    points: '-40,-40 80,-40 -40,80'
   },
   ST1: {
     label: 'Tam giác nhỏ 1', color: '#BAFFC9', stroke: '#60D890',
-    points: '0,-60 85,60 -85,60'
+    points: '-60,20 60,20 0,-40'
   },
   ST2: {
     label: 'Tam giác nhỏ 2', color: '#BAE1FF', stroke: '#60B8FF',
-    points: '0,-60 85,60 -85,60'
+    points: '-60,20 60,20 0,-40'
   },
   SQ: {
-    label: 'Hình vuông',  color: '#D0BAFF', stroke: '#A880FF',
-    // Hình thoi (square xoay 45°)
-    points: '0,-85 85,0 0,85 -85,0'
+    label: 'Hình vuông', color: '#D0BAFF', stroke: '#A880FF',
+    points: '0,-60 60,0 0,60 -60,0'
   },
   PA: {
     label: 'Bình hành', color: '#FFBAE1', stroke: '#FF80C0',
-    // Hình bình hành
-    points: '-80,-45 80,-45 130,45 -130,45'
+    points: '-30,-30 90,-30 30,30 -90,30'
   }
 };
 
 /* ============================================================
-   2. LEVEL DATA
+   2. LEVEL DATA (Tất cả tọa độ khớp khít từng pixel)
    ============================================================ */
 const LEVELS = [
   {
-    id: 'house_01', name: 'Ngôi nhà', icon: '🏠', path: 'easy/house',
+    id: 'square_01', name: 'Hình vuông', icon: '🟩',
     pieces: [
-      { pieceId: 'LT1', targetX: 200, targetY: 160, rotation: 0   },
-      { pieceId: 'LT2', targetX: 400, targetY: 160, rotation: 180 },
-      { pieceId: 'MT',  targetX: 300, targetY: 290, rotation: 180 },
-      { pieceId: 'SQ',  targetX: 300, targetY: 400, rotation: 0   },
-      { pieceId: 'ST1', targetX: 200, targetY: 450, rotation: 90  },
-      { pieceId: 'ST2', targetX: 400, targetY: 450, rotation: 270 },
-      { pieceId: 'PA',  targetX: 300, targetY: 510, rotation: 0   }
+      { pieceId: 'LT1', targetX: 300, targetY: 220, rotation: 180, flip: 1 },
+      { pieceId: 'LT2', targetX: 220, targetY: 300, rotation: 90,  flip: 1 },
+      { pieceId: 'MT',  targetX: 380, targetY: 380, rotation: 180, flip: 1 },
+      { pieceId: 'ST1', targetX: 340, targetY: 300, rotation: 270, flip: 1 },
+      { pieceId: 'SQ',  targetX: 300, targetY: 360, rotation: 0,   flip: 1 },
+      { pieceId: 'ST2', targetX: 240, targetY: 400, rotation: 0,   flip: 1 },
+      { pieceId: 'PA',  targetX: 390, targetY: 270, rotation: 90,  flip: -1 }
     ]
   },
   {
-    id: 'boat_01', name: 'Con thuyền', icon: '⛵', path: 'easy/boat',
+    id: 'house_01', name: 'Ngôi nhà', icon: '🏠',
     pieces: [
-      { pieceId: 'LT1', targetX: 300, targetY: 150, rotation: 180 },
-      { pieceId: 'LT2', targetX: 300, targetY: 330, rotation: 0   },
-      { pieceId: 'MT',  targetX: 180, targetY: 240, rotation: 270 },
-      { pieceId: 'SQ',  targetX: 300, targetY: 420, rotation: 45  },
-      { pieceId: 'ST1', targetX: 420, targetY: 240, rotation: 90  },
-      { pieceId: 'ST2', targetX: 200, targetY: 420, rotation: 0   },
-      { pieceId: 'PA',  targetX: 400, targetY: 440, rotation: 180 }
+      { pieceId: 'LT1', targetX: 300, targetY: 210, rotation: 0,   flip: 1 },
+      { pieceId: 'LT2', targetX: 300, targetY: 330, rotation: 0,   flip: 1 },
+      { pieceId: 'MT',  targetX: 220, targetY: 290, rotation: 0,   flip: 1 },
+      { pieceId: 'ST1', targetX: 360, targetY: 270, rotation: 180, flip: 1 },
+      { pieceId: 'ST2', targetX: 400, targetY: 310, rotation: 270, flip: 1 },
+      { pieceId: 'SQ',  targetX: 240, targetY: 130, rotation: 0,   flip: 1 },
+      { pieceId: 'PA',  targetX: 330, targetY: 400, rotation: 0,   flip: 1 }
     ]
   },
   {
-    id: 'cat_01', name: 'Chú mèo', icon: '🐱', path: 'easy/cat',
+    id: 'boat_01', name: 'Con thuyền', icon: '⛵',
     pieces: [
-      { pieceId: 'LT1', targetX: 200, targetY: 160, rotation: 270 },
-      { pieceId: 'LT2', targetX: 400, targetY: 160, rotation: 90  },
-      { pieceId: 'MT',  targetX: 300, targetY: 220, rotation: 0   },
-      { pieceId: 'SQ',  targetX: 300, targetY: 350, rotation: 0   },
-      { pieceId: 'ST1', targetX: 180, targetY: 430, rotation: 0   },
-      { pieceId: 'ST2', targetX: 420, targetY: 430, rotation: 0   },
-      { pieceId: 'PA',  targetX: 300, targetY: 490, rotation: 0   }
+      { pieceId: 'LT1', targetX: 220, targetY: 280, rotation: 90,  flip: 1 },
+      { pieceId: 'LT2', targetX: 340, targetY: 280, rotation: 90,  flip: 1 },
+      { pieceId: 'MT',  targetX: 380, targetY: 360, rotation: 180, flip: 1 },
+      { pieceId: 'SQ',  targetX: 300, targetY: 100, rotation: 0,   flip: 1 },
+      { pieceId: 'ST1', targetX: 210, targetY: 420, rotation: 180, flip: 1 },
+      { pieceId: 'PA',  targetX: 300, targetY: 430, rotation: 0,   flip: 1 },
+      { pieceId: 'ST2', targetX: 390, targetY: 440, rotation: 0,   flip: 1 }
+    ]
+  },
+  {
+    id: 'rocket_01', name: 'Tên lửa', icon: '🚀',
+    pieces: [
+      { pieceId: 'LT1', targetX: 300, targetY: 180, rotation: 0,   flip: 1 },
+      { pieceId: 'MT',  targetX: 220, targetY: 260, rotation: 0,   flip: 1 },
+      { pieceId: 'ST1', targetX: 360, targetY: 240, rotation: 180, flip: 1 },
+      { pieceId: 'ST2', targetX: 300, targetY: 320, rotation: 0,   flip: 1 },
+      { pieceId: 'SQ',  targetX: 300, targetY: 400, rotation: 0,   flip: 1 },
+      { pieceId: 'LT2', targetX: 300, targetY: 500, rotation: 0,   flip: 1 },
+      { pieceId: 'PA',  targetX: 300, targetY: 570, rotation: 0,   flip: 1 }
+    ]
+  },
+  {
+    id: 'fish_01', name: 'Con cá', icon: '🐟',
+    pieces: [
+      { pieceId: 'SQ',  targetX: 80,  targetY: 300, rotation: 0,   flip: 1 },
+      { pieceId: 'LT1', targetX: 260, targetY: 260, rotation: 0,   flip: 1 },
+      { pieceId: 'LT2', targetX: 260, targetY: 340, rotation: 180, flip: 1 },
+      { pieceId: 'ST1', targetX: 260, targetY: 160, rotation: 0,   flip: 1 },
+      { pieceId: 'ST2', targetX: 260, targetY: 440, rotation: 180, flip: 1 },
+      { pieceId: 'PA',  targetX: 410, targetY: 300, rotation: 90,  flip: 1 },
+      { pieceId: 'MT',  targetX: 480, targetY: 310, rotation: 0,   flip: 1 }
+    ]
+  },
+  {
+    id: 'tree_01', name: 'Cây thông', icon: '🌲',
+    pieces: [
+      { pieceId: 'ST1', targetX: 300, targetY: 110, rotation: 0,   flip: 1 },
+      { pieceId: 'LT1', targetX: 300, targetY: 210, rotation: 0,   flip: 1 },
+      { pieceId: 'LT2', targetX: 300, targetY: 330, rotation: 0,   flip: 1 },
+      { pieceId: 'SQ',  targetX: 300, targetY: 430, rotation: 0,   flip: 1 },
+      { pieceId: 'PA',  targetX: 330, targetY: 520, rotation: 0,   flip: 1 },
+      { pieceId: 'ST2', targetX: 420, targetY: 530, rotation: 0,   flip: 1 },
+      { pieceId: 'MT',  targetX: 200, targetY: 470, rotation: 270, flip: 1 }
+    ]
+  },
+  {
+    id: 'arrow_01', name: 'Mũi tên', icon: '🏹',
+    pieces: [
+      { pieceId: 'LT1', targetX: 300, targetY: 160, rotation: 0,   flip: 1 },
+      { pieceId: 'SQ',  targetX: 300, targetY: 260, rotation: 0,   flip: 1 },
+      { pieceId: 'LT2', targetX: 300, targetY: 400, rotation: 0,   flip: 1 },
+      { pieceId: 'ST1', targetX: 240, targetY: 460, rotation: 180, flip: 1 },
+      { pieceId: 'ST2', targetX: 360, targetY: 460, rotation: 180, flip: 1 },
+      { pieceId: 'PA',  targetX: 300, targetY: 530, rotation: 0,   flip: 1 },
+      { pieceId: 'MT',  targetX: 160, targetY: 480, rotation: 0,   flip: 1 }
+    ]
+  },
+  {
+    id: 'crown_01', name: 'Vương miện', icon: '👑',
+    pieces: [
+      { pieceId: 'LT1', targetX: 300, targetY: 360, rotation: 0,   flip: 1 },
+      { pieceId: 'MT',  targetX: 220, targetY: 320, rotation: 0,   flip: 1 },
+      { pieceId: 'ST1', targetX: 360, targetY: 300, rotation: 180, flip: 1 },
+      { pieceId: 'ST2', targetX: 400, targetY: 340, rotation: 270, flip: 1 },
+      { pieceId: 'LT2', targetX: 300, targetY: 240, rotation: 0,   flip: 1 },
+      { pieceId: 'SQ',  targetX: 210, targetY: 190, rotation: 0,   flip: 1 },
+      { pieceId: 'PA',  targetX: 410, targetY: 220, rotation: 90,  flip: 1 }
     ]
   }
 ];
@@ -90,8 +151,13 @@ const LEVELS = [
    ============================================================ */
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem('tangramProgress')) || { unlocked: ['house_01'], stars: {} };
-  } catch { return { unlocked: ['house_01'], stars: {} }; }
+    const raw = JSON.parse(localStorage.getItem('tangramProgress'));
+    const unlocked = Array.isArray(raw?.unlocked) ? raw.unlocked : ['square_01'];
+    const stars = (raw?.stars && typeof raw.stars === 'object' && !Array.isArray(raw.stars)) ? raw.stars : {};
+    return { unlocked, stars };
+  } catch {
+    return { unlocked: ['square_01'], stars: {} };
+  }
 }
 
 function saveProgress(prog) {
@@ -99,58 +165,95 @@ function saveProgress(prog) {
 }
 
 /* ============================================================
-   4. SNAP SYSTEM
+   4. SNAP & SYMMETRY SYSTEM
    ============================================================ */
-const SNAP_POS_TOLERANCE = 35;  // SVG user-units
+const SNAP_POS_TOLERANCE = 32;  // SVG user-units
 const SNAP_ROT_TOLERANCE = 20;  // degrees
 
 function normalizeAngle(a) { return ((a % 360) + 360) % 360; }
 
-function shouldSnap(g, targetX, targetY, targetRot) {
-  const tx  = parseFloat(g.dataset.tx  || 0);
-  const ty  = parseFloat(g.dataset.ty  || 0);
-  const rot = parseFloat(g.dataset.rot || 0);
-
-  const dx = Math.abs(tx - targetX);
-  const dy = Math.abs(ty - targetY);
-  let dRot = Math.abs(normalizeAngle(rot) - normalizeAngle(targetRot));
-  if (dRot > 180) dRot = 360 - dRot;
-
-  return dx <= SNAP_POS_TOLERANCE && dy <= SNAP_POS_TOLERANCE && dRot <= SNAP_ROT_TOLERANCE;
+function getRotationalSymmetry(pieceId) {
+  if (pieceId === 'SQ') return 90;
+  if (pieceId === 'PA') return 180;
+  return 360;
 }
 
-function snapTo(g, targetX, targetY, targetRot) {
-  g.dataset.tx  = targetX;
-  g.dataset.ty  = targetY;
-  g.dataset.rot = targetRot;
-  g.setAttribute('transform', `translate(${targetX},${targetY}) rotate(${targetRot})`);
+function getShapeGroup(pieceId) {
+  if (pieceId === 'LT1' || pieceId === 'LT2') return 'LT';
+  if (pieceId === 'ST1' || pieceId === 'ST2') return 'ST';
+  return pieceId;
+}
+
+function matchesTarget(pieceId, tx, ty, rot, flip, targetX, targetY, targetRot, targetFlip) {
+  const dx = Math.abs(tx - targetX);
+  const dy = Math.abs(ty - targetY);
+  if (dx > SNAP_POS_TOLERANCE || dy > SNAP_POS_TOLERANCE) return false;
+
+  // Chỉ hình bình hành (PA) mới phân biệt mặt lật
+  if (pieceId === 'PA' && flip !== targetFlip) return false;
+
+  const sym = getRotationalSymmetry(pieceId);
+  const a1 = ((rot % sym) + sym) % sym;
+  const a2 = ((targetRot % sym) + sym) % sym;
+  let dRot = Math.abs(a1 - a2);
+  if (dRot > sym / 2) dRot = sym - dRot;
+
+  return dRot <= SNAP_ROT_TOLERANCE;
+}
+
+function snapTo(g, targetX, targetY, targetRot, targetFlip) {
+  g.dataset.scale = 1;
+  applyTransform(g, targetX, targetY, targetRot, 1, targetFlip);
   g.dataset.snapped = 'true';
-  g.style.cursor    = 'default';
+  g.style.cursor    = 'grab';
 
   // Flash effect
   const poly = g.querySelector('polygon');
   if (poly) {
     const orig = poly.getAttribute('fill');
     poly.setAttribute('fill', '#ffffff');
-    setTimeout(() => poly.setAttribute('fill', orig), 120);
+    setTimeout(() => poly.setAttribute('fill', orig), 130);
   }
 
-  // Sound
-  playSound('snd-snap');
+  updateTrayLabel();
+  playTone('snap');
 }
 
 /* ============================================================
-   5. AUDIO HELPER
+   5. WEB AUDIO HELPER
    ============================================================ */
-function playSound(id) {
-  const el = document.getElementById(id);
-  if (el) { el.currentTime = 0; el.play().catch(() => {}); }
+let tangramAudioCtx = null;
+
+function playTone(type) {
+  try {
+    if (!tangramAudioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      tangramAudioCtx = new AC();
+    }
+    if (tangramAudioCtx.state === 'suspended') tangramAudioCtx.resume();
+
+    const now = tangramAudioCtx.currentTime;
+    const notes = type === 'success' ? [523.25, 659.25, 783.99, 1046.5] : [660, 880];
+    notes.forEach((freq, idx) => {
+      const osc = tangramAudioCtx.createOscillator();
+      const gain = tangramAudioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+      gain.gain.setValueAtTime(0.001, now + idx * 0.07);
+      gain.gain.linearRampToValueAtTime(0.22, now + idx * 0.07 + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.22);
+      osc.connect(gain);
+      gain.connect(tangramAudioCtx.destination);
+      osc.start(now + idx * 0.07);
+      osc.stop(now + idx * 0.07 + 0.25);
+    });
+  } catch {}
 }
 
 /* ============================================================
    6. DRAG SYSTEM
    ============================================================ */
-let dragState = null; // { g, startSVGPt, startTx, startTy }
+let dragState = null;
 
 function getClientXY(e) {
   const src = (e.touches && e.touches[0]) ? e.touches[0] : e;
@@ -166,48 +269,59 @@ function clientToSVGCoords(clientX, clientY, svgEl) {
   return pt.matrixTransform(ctm.inverse());
 }
 
-function applyTransform(g, tx, ty, rot) {
-  g.dataset.tx  = tx;
-  g.dataset.ty  = ty;
-  g.dataset.rot = rot !== undefined ? rot : parseFloat(g.dataset.rot || 0);
-  const r = parseFloat(g.dataset.rot);
-  g.setAttribute('transform', `translate(${tx},${ty}) rotate(${r})`);
+function applyTransform(g, tx, ty, rot, scale, flip) {
+  g.dataset.tx = tx;
+  g.dataset.ty = ty;
+  if (rot !== undefined) g.dataset.rot = rot;
+  if (scale !== undefined) g.dataset.scale = scale;
+  if (flip !== undefined) g.dataset.flip = flip;
+
+  const r = parseFloat(g.dataset.rot || 0);
+  const s = parseFloat(g.dataset.scale || 1);
+  const f = parseFloat(g.dataset.flip || 1);
+  const sx = s * f;
+  const sy = s;
+  const scalePart = (sx !== 1 || sy !== 1) ? ` scale(${sx},${sy})` : '';
+  g.setAttribute('transform', `translate(${tx},${ty}) rotate(${r})${scalePart}`);
 }
 
 function onPieceMouseDown(e, g) {
   e.preventDefault();
   e.stopPropagation();
-  if (g.dataset.snapped === 'true') return;
+  if (gameState.isCompleted) return;
 
-  // Select piece
+  // Nếu mảnh đã khớp nhưng user muốn tháo ra chỉnh lại → mở khóa mảnh
+  if (g.dataset.snapped === 'true') {
+    g.dataset.snapped = 'false';
+    g.style.cursor = 'grabbing';
+    updateTrayLabel();
+  }
+
   selectPiece(g);
 
   const boardSVG = document.getElementById('game-svg');
   const traySVG  = document.getElementById('tray-svg');
 
-  // Lấy cursor trong board SVG coords TRƯỚC KHI move piece
   const { x, y } = getClientXY(e);
   const svgPt = clientToSVGCoords(x, y, boardSVG);
 
-  // Nếu piece đang ở trong tray → chuyển sang board tại vị trí con trỏ
+  // Kéo từ khay lên bảng: phóng về tỉ lệ chuẩn 1:1
   if (g.closest('svg') === traySVG) {
     const piecesG = document.getElementById('pieces-group');
-    // Đặt piece tại cursor (clamped vào board), nếu cursor ngoài board thì đặt cạnh trên tray
-    const cx = Math.max(30, Math.min(570, svgPt.x));
-    const cy = Math.max(30, Math.min(570, svgPt.y));
-    applyTransform(g, cx, cy, 0);
+    const cx = Math.max(40, Math.min(560, svgPt.x));
+    const cy = Math.max(40, Math.min(560, svgPt.y));
+    applyTransform(g, cx, cy, parseFloat(g.dataset.rot || 0), 1, parseFloat(g.dataset.flip || 1));
     piecesG.appendChild(g);
   }
 
   dragState = {
     g,
     boardSVG,
-    startSVGPt: svgPt,             // con trỏ ban đầu (board coords)
-    startTx: parseFloat(g.dataset.tx || 0), // vị trí piece (đã update nếu từ tray)
+    startSVGPt: svgPt,
+    startTx: parseFloat(g.dataset.tx || 0),
     startTy: parseFloat(g.dataset.ty || 0)
   };
 
-  // Bring to front
   g.parentNode.appendChild(g);
 }
 
@@ -229,9 +343,6 @@ function onGlobalMouseUp() {
   const g = dragState.g;
   dragState = null;
 
-  // Unhighlight
-  g.querySelector('polygon')?.setAttribute('stroke-width', '4');
-
   trySnapPiece(g);
 }
 
@@ -243,13 +354,14 @@ let gameState = {
   pieces: [],
   selectedPiece: null,
   timerInterval: null,
-  secondsElapsed: 0
+  secondsElapsed: 0,
+  isCompleted: false
 };
 
 let progress = loadProgress();
 
 /* ============================================================
-   8. SELECT / ROTATE
+   8. SELECT / ROTATE / FLIP
    ============================================================ */
 function selectPiece(g) {
   if (gameState.selectedPiece && gameState.selectedPiece !== g) {
@@ -260,36 +372,121 @@ function selectPiece(g) {
   document.getElementById('rotate-bar').style.display = 'flex';
 }
 
-function rotatePiece(delta) {
-  const g = gameState.selectedPiece;
-  if (!g || g.dataset.snapped === 'true') return;
+function rotatePiece(delta, targetPiece) {
+  const g = targetPiece || gameState.selectedPiece;
+  if (!g || gameState.isCompleted) return;
+  if (g.dataset.snapped === 'true') {
+    g.dataset.snapped = 'false';
+    g.style.cursor = 'grab';
+    updateTrayLabel();
+  }
 
-  let rot = normalizeAngle(parseFloat(g.dataset.rot || 0) + delta);
+  const rot = normalizeAngle(parseFloat(g.dataset.rot || 0) + delta);
   applyTransform(g, parseFloat(g.dataset.tx || 0), parseFloat(g.dataset.ty || 0), rot);
   trySnapPiece(g);
+}
+
+function flipPiece(targetPiece) {
+  const g = targetPiece || gameState.selectedPiece;
+  if (!g || gameState.isCompleted) return;
+  if (g.dataset.snapped === 'true') {
+    g.dataset.snapped = 'false';
+    g.style.cursor = 'grab';
+    updateTrayLabel();
+  }
+
+  const flip = parseFloat(g.dataset.flip || 1) * -1;
+  applyTransform(g, parseFloat(g.dataset.tx || 0), parseFloat(g.dataset.ty || 0), undefined, undefined, flip);
+  trySnapPiece(g);
+}
+
+function returnPieceToTray(targetPiece) {
+  const g = targetPiece || gameState.selectedPiece;
+  if (!g || gameState.isCompleted) return;
+
+  g.dataset.snapped = 'false';
+  g.style.cursor = 'grab';
+  g.querySelector('polygon')?.setAttribute('stroke-width', '4');
+
+  const trayG = document.getElementById('tray-pieces-group');
+  const tx = parseFloat(g.dataset.trayX || 350);
+  const ty = parseFloat(g.dataset.trayY || 80);
+  applyTransform(g, tx, ty, 0, 0.36, 1);
+  trayG.appendChild(g);
+
+  if (gameState.selectedPiece === g) {
+    gameState.selectedPiece = null;
+    document.getElementById('rotate-bar').style.display = 'none';
+  }
+  updateTrayLabel();
+}
+
+function updateTrayLabel() {
+  const label = document.querySelector('.tray-label');
+  if (!label || !gameState.pieces.length) return;
+  const snappedCount = gameState.pieces.filter(p => p.dataset.snapped === 'true').length;
+  const total = gameState.pieces.length;
+  label.textContent = snappedCount === total
+    ? `✨ Tuyệt vời! Đã ghép xong ${total}/${total} mảnh!`
+    : `Kéo mảnh lên bảng (đã khớp ${snappedCount}/${total} mảnh) — Chạm mảnh đã đặt để tháo/chỉnh`;
 }
 
 /* ============================================================
    9. SNAP PIECE
    ============================================================ */
 function trySnapPiece(g) {
-  const tx  = parseFloat(g.getAttribute('data-target-x'));
-  const ty  = parseFloat(g.getAttribute('data-target-y'));
-  const rot = parseFloat(g.getAttribute('data-target-rot'));
+  const pieceId = g.getAttribute('data-piece-id');
+  const group = getShapeGroup(pieceId);
+  const curTx = parseFloat(g.dataset.tx || 0);
+  const curTy = parseFloat(g.dataset.ty || 0);
+  const curRot = parseFloat(g.dataset.rot || 0);
+  const curFlip = parseFloat(g.dataset.flip || 1);
 
-  if (shouldSnap(g, tx, ty, rot)) {
-    snapTo(g, tx, ty, rot);
+  const candidates = gameState.pieces.filter(p =>
+    p.dataset.snapped !== 'true' && getShapeGroup(p.getAttribute('data-piece-id')) === group
+  );
 
-    if (gameState.selectedPiece === g) {
-      gameState.selectedPiece = null;
-      document.getElementById('rotate-bar').style.display = 'none';
+  candidates.sort((a, b) => (a === g ? -1 : b === g ? 1 : 0));
+
+  for (const targetOwner of candidates) {
+    const tx   = parseFloat(targetOwner.getAttribute('data-target-x'));
+    const ty   = parseFloat(targetOwner.getAttribute('data-target-y'));
+    const rot  = parseFloat(targetOwner.getAttribute('data-target-rot'));
+    const flip = parseFloat(targetOwner.getAttribute('data-target-flip') || 1);
+
+    if (matchesTarget(pieceId, curTx, curTy, curRot, curFlip, tx, ty, rot, flip)) {
+      if (targetOwner !== g) {
+        const gTx   = g.getAttribute('data-target-x');
+        const gTy   = g.getAttribute('data-target-y');
+        const gRot  = g.getAttribute('data-target-rot');
+        const gFlip = g.getAttribute('data-target-flip') || '1';
+        g.setAttribute('data-target-x',    tx);
+        g.setAttribute('data-target-y',    ty);
+        g.setAttribute('data-target-rot',  rot);
+        g.setAttribute('data-target-flip', flip);
+        targetOwner.setAttribute('data-target-x',    gTx);
+        targetOwner.setAttribute('data-target-y',    gTy);
+        targetOwner.setAttribute('data-target-rot',  gRot);
+        targetOwner.setAttribute('data-target-flip', gFlip);
+      }
+
+      const sym = getRotationalSymmetry(pieceId);
+      const snappedRot = sym < 360 ? rot + Math.round((curRot - rot) / sym) * sym : rot;
+
+      snapTo(g, tx, ty, snappedRot, flip);
+      g.querySelector('polygon')?.setAttribute('stroke-width', '4');
+
+      if (gameState.selectedPiece === g) {
+        gameState.selectedPiece = null;
+        document.getElementById('rotate-bar').style.display = 'none';
+      }
+
+      const piecesG = document.getElementById('pieces-group');
+      if (g.parentNode !== piecesG) piecesG.appendChild(g);
+
+      checkComplete();
+      return;
     }
-
-    // Ensure piece is on board
-    const piecesG = document.getElementById('pieces-group');
-    if (g.parentNode !== piecesG) piecesG.appendChild(g);
-
-    checkComplete();
   }
 }
 
@@ -299,48 +496,55 @@ function trySnapPiece(g) {
 const NS = 'http://www.w3.org/2000/svg';
 
 function renderLevel(levelData) {
-  gameState.currentLevel = levelData;
-  gameState.pieces       = [];
+  gameState.currentLevel  = levelData;
+  gameState.pieces        = [];
   gameState.selectedPiece = null;
+  gameState.isCompleted   = false;
 
-  // Clear
-  document.getElementById('pieces-group').innerHTML  = '';
+  document.getElementById('complete-popup').classList.add('hidden');
+  document.getElementById('pieces-group').innerHTML      = '';
   document.getElementById('tray-pieces-group').innerHTML = '';
-  document.getElementById('outline-group').innerHTML = '';
+  document.getElementById('outline-group').innerHTML     = '';
 
   document.getElementById('rotate-bar').style.display = 'none';
   document.getElementById('level-title').textContent = levelData.name;
 
-  // Outline (ghost)
+  // Bóng hình mục tiêu liền khối (Silhouette)
   const outlineG = document.getElementById('outline-group');
   levelData.pieces.forEach(pd => {
     const def = PIECE_DEFS[pd.pieceId];
     if (!def) return;
     const poly = createSVGEl('polygon');
     poly.setAttribute('points', def.points);
-    poly.setAttribute('fill', '#b0bec5');
-    poly.setAttribute('stroke', 'none');
+    poly.setAttribute('fill', '#94a3b8');
+    poly.setAttribute('stroke', '#94a3b8');
+    poly.setAttribute('stroke-width', '1');
     const g = createSVGEl('g');
-    g.setAttribute('transform', `translate(${pd.targetX},${pd.targetY}) rotate(${pd.rotation})`);
+    const fl = pd.flip || 1;
+    const scalePart = fl !== 1 ? ` scale(${fl},1)` : '';
+    g.setAttribute('transform', `translate(${pd.targetX},${pd.targetY}) rotate(${pd.rotation})${scalePart}`);
     g.appendChild(poly);
     outlineG.appendChild(g);
   });
 
-  // Pieces in tray
-  const trayG    = document.getElementById('tray-pieces-group');
-  const total    = levelData.pieces.length;
-  const trayW    = 700;
-  const colW     = trayW / total;
+  // Xếp 7 mảnh gọn gàng trong khay
+  const trayG = document.getElementById('tray-pieces-group');
+  const total = levelData.pieces.length;
+  const trayW = 700;
+  const colW  = trayW / total;
 
   levelData.pieces.forEach((pd, i) => {
-    const g = createPieceElement(pd);
+    const g  = createPieceElement(pd);
     const tx = colW * i + colW / 2;
     const ty = 80;
-    applyTransform(g, tx, ty, 0);
+    g.dataset.trayX = tx;
+    g.dataset.trayY = ty;
+    applyTransform(g, tx, ty, 0, 0.36, 1);
     trayG.appendChild(g);
     gameState.pieces.push(g);
   });
 
+  updateTrayLabel();
   startTimer();
 }
 
@@ -352,7 +556,6 @@ function createPieceElement(pd) {
   const def = PIECE_DEFS[pd.pieceId];
   if (!def) return createSVGEl('g');
 
-  // Shadow filter
   const fid  = `f${pd.pieceId}${Math.random().toString(36).slice(2,5)}`;
   const defs = createSVGEl('defs');
   const filt = createSVGEl('filter');
@@ -360,13 +563,12 @@ function createPieceElement(pd) {
   filt.setAttribute('x', '-40%'); filt.setAttribute('y', '-40%');
   filt.setAttribute('width', '180%'); filt.setAttribute('height', '180%');
   const ds = createSVGEl('feDropShadow');
-  ds.setAttribute('dx', '0'); ds.setAttribute('dy', '5');
-  ds.setAttribute('stdDeviation', '6');
+  ds.setAttribute('dx', '0'); ds.setAttribute('dy', '4');
+  ds.setAttribute('stdDeviation', '5');
   ds.setAttribute('flood-color', 'rgba(0,0,0,0.22)');
   filt.appendChild(ds);
   defs.appendChild(filt);
 
-  // Polygon
   const poly = createSVGEl('polygon');
   poly.setAttribute('points',          def.points);
   poly.setAttribute('fill',            def.color);
@@ -375,19 +577,20 @@ function createPieceElement(pd) {
   poly.setAttribute('stroke-linejoin', 'round');
   poly.setAttribute('filter',          `url(#${fid})`);
 
-  // Title tooltip
   const title = createSVGEl('title');
   title.textContent = def.label;
 
-  // Group
   const g = createSVGEl('g');
-  g.setAttribute('data-piece-id',   pd.pieceId);
-  g.setAttribute('data-target-x',   pd.targetX);
-  g.setAttribute('data-target-y',   pd.targetY);
-  g.setAttribute('data-target-rot', pd.rotation);
+  g.setAttribute('data-piece-id',    pd.pieceId);
+  g.setAttribute('data-target-x',    pd.targetX);
+  g.setAttribute('data-target-y',    pd.targetY);
+  g.setAttribute('data-target-rot',  pd.rotation);
+  g.setAttribute('data-target-flip', pd.flip || 1);
   g.dataset.tx      = 0;
   g.dataset.ty      = 0;
   g.dataset.rot     = 0;
+  g.dataset.scale   = 1;
+  g.dataset.flip    = 1;
   g.dataset.snapped = 'false';
   g.style.cursor    = 'grab';
 
@@ -395,9 +598,23 @@ function createPieceElement(pd) {
   g.appendChild(poly);
   g.appendChild(title);
 
-  // Drag events
   g.addEventListener('mousedown',  e => onPieceMouseDown(e, g));
   g.addEventListener('touchstart', e => onPieceMouseDown(e, g), { passive: false });
+  // Nhấp đúp hoặc cuộn chuột trên mảnh để xoay nhanh 45°
+  g.addEventListener('dblclick', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (g.closest('svg') === document.getElementById('game-svg')) {
+      selectPiece(g);
+      rotatePiece(45, g);
+    }
+  });
+  g.addEventListener('wheel', e => {
+    if (g.closest('svg') !== document.getElementById('game-svg')) return;
+    e.preventDefault();
+    selectPiece(g);
+    rotatePiece(e.deltaY > 0 ? 45 : -45, g);
+  }, { passive: false });
 
   return g;
 }
@@ -409,16 +626,17 @@ function checkComplete() {
   const done = gameState.pieces.every(p => p.dataset.snapped === 'true');
   if (!done) return;
 
+  gameState.isCompleted = true;
+  document.getElementById('rotate-bar').style.display = 'none';
   stopTimer();
 
   let stars = 1;
-  if (gameState.secondsElapsed < 60)  stars = 3;
+  if (gameState.secondsElapsed < 60)       stars = 3;
   else if (gameState.secondsElapsed < 120) stars = 2;
 
   const idx    = LEVELS.findIndex(l => l.id === gameState.currentLevel.id);
   const nextId = (idx >= 0 && idx < LEVELS.length - 1) ? LEVELS[idx + 1].id : null;
 
-  // Unlock next level
   if (nextId && !progress.unlocked.includes(nextId)) {
     progress.unlocked.push(nextId);
   }
@@ -436,7 +654,7 @@ function checkComplete() {
     if (typeof confetti === 'function') {
       confetti({ particleCount: 180, spread: 90, origin: { y: 0.55 } });
     }
-    playSound('snd-success');
+    playTone('success');
   }, 350);
 }
 
@@ -482,8 +700,8 @@ function renderLevelGrid() {
   const grid = document.getElementById('level-grid');
   grid.innerHTML = '';
 
-  LEVELS.forEach((lv, idx) => {
-    const unlocked = idx === 0 || progress.unlocked.includes(lv.id);
+  LEVELS.forEach((lv) => {
+    const unlocked = true;
     const stars    = progress.stars[lv.id] || 0;
 
     const card = document.createElement('div');
@@ -507,7 +725,6 @@ function renderLevelGrid() {
    14. INIT
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
-  // Nav buttons
   document.getElementById('btn-play')
     .addEventListener('click', () => showScreen('levelSelect'));
 
@@ -515,7 +732,11 @@ document.addEventListener('DOMContentLoaded', () => {
     .addEventListener('click', () => showScreen('home'));
 
   document.getElementById('btn-back-levels')
-    .addEventListener('click', () => { stopTimer(); showScreen('levelSelect'); });
+    .addEventListener('click', () => {
+      document.getElementById('complete-popup').classList.add('hidden');
+      stopTimer();
+      showScreen('levelSelect');
+    });
 
   document.getElementById('btn-reset')
     .addEventListener('click', () => { if (gameState.currentLevel) { stopTimer(); renderLevel(gameState.currentLevel); } });
@@ -526,10 +747,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!unsnapped) return;
       const piecesG = document.getElementById('pieces-group');
       if (unsnapped.parentNode !== piecesG) piecesG.appendChild(unsnapped);
+      unsnapped.querySelector('polygon')?.setAttribute('stroke-width', '4');
+      if (gameState.selectedPiece === unsnapped) {
+        gameState.selectedPiece = null;
+        document.getElementById('rotate-bar').style.display = 'none';
+      }
       snapTo(unsnapped,
         parseFloat(unsnapped.getAttribute('data-target-x')),
         parseFloat(unsnapped.getAttribute('data-target-y')),
-        parseFloat(unsnapped.getAttribute('data-target-rot'))
+        parseFloat(unsnapped.getAttribute('data-target-rot')),
+        parseFloat(unsnapped.getAttribute('data-target-flip') || 1)
       );
       checkComplete();
     });
@@ -539,6 +766,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-rotate-right')
     .addEventListener('click', () => rotatePiece(+45));
+
+  document.getElementById('btn-flip')
+    .addEventListener('click', () => flipPiece());
+
+  document.getElementById('btn-to-tray')
+    .addEventListener('click', () => returnPieceToTray());
 
   document.getElementById('btn-next-level')
     .addEventListener('click', () => {
@@ -558,7 +791,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showScreen('levelSelect');
     });
 
-  // Global drag events
   window.addEventListener('mousemove',   onGlobalMouseMove, { passive: false });
   window.addEventListener('touchmove',   onGlobalMouseMove, { passive: false });
   window.addEventListener('mouseup',     onGlobalMouseUp);

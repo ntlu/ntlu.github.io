@@ -178,9 +178,14 @@ body {
 .btn-rotate {
   background: linear-gradient(135deg, var(--c-purple), #b894ff);
   color: #fff;
-  font-size: 1rem;
-  padding: 10px 20px;
+  font-size: 0.95rem;
+  padding: 8px 14px;
   box-shadow: 0 4px 14px rgba(176,140,255,.4);
+}
+
+.btn-tray-back {
+  background: linear-gradient(135deg, #94a3b8, #64748b);
+  box-shadow: 0 4px 12px rgba(100,116,139,.3);
 }
 
 /* ---------- Pulse ---------- */
@@ -340,8 +345,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 8px 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
   background: rgba(255,255,255,.92);
   border-top: 2px solid rgba(208,186,255,.4);
   flex-shrink: 0;
@@ -368,9 +374,11 @@ body {
   transition: opacity .3s;
 }
 
-.popup-overlay.hidden {
+.popup-overlay.hidden,
+.popup-overlay.hidden * {
   opacity: 0;
-  pointer-events: none;
+  visibility: hidden;
+  pointer-events: none !important;
 }
 
 .popup-card {
@@ -403,6 +411,59 @@ body {
   flex-wrap: wrap;
 }
 
+/* Complete banner docked at bottom so board artwork stays visible */
+.popup-overlay.complete-bottom {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.popup-overlay.complete-bottom .complete-card {
+  pointer-events: auto;
+  max-width: 680px;
+  width: 100%;
+  border-radius: 24px 24px 0 0;
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  text-align: left;
+  border-bottom: none;
+  box-shadow: 0 -10px 36px rgba(100, 70, 180, 0.22);
+}
+
+.complete-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.complete-info .popup-emoji {
+  font-size: 2.5rem;
+  margin-bottom: 0;
+}
+
+.complete-info .popup-title {
+  font-size: 1.35rem;
+  margin-bottom: 2px;
+}
+
+.popup-meta {
+  font-size: 1rem;
+  color: var(--c-text);
+  font-weight: 600;
+}
+
+.popup-meta .stars-row {
+  font-size: 1.15rem;
+  letter-spacing: 2px;
+  margin-bottom: 0;
+}
+
 /* ========================
    RESPONSIVE
    ======================== */
@@ -410,14 +471,14 @@ body {
   .home-logo h1     { font-size: 2.6rem; }
   .logo-icon        { font-size: 4rem; }
   .game-board-area  { padding: 8px; }
-  #game-svg         { max-width: 100%; max-height: 55vw; }
+  #game-svg         { max-width: 100%; max-height: 100%; }
   #tray-svg         { height: 110px; }
   .popup-card       { padding: 28px 20px; }
 }
 
 @media (max-width: 360px) {
   .top-bar { padding: 8px 10px; gap: 8px; }
-  #game-svg { max-height: 50vw; }
+  #game-svg { max-height: 100%; }
 }
 
 /* ========================

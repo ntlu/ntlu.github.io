@@ -13,6 +13,7 @@
 
   <!-- ===== HOME SCREEN ===== -->
   <section id="home-screen" class="screen active">
+    <a href="../index.html" class="btn btn-icon" style="position:absolute;top:14px;left:14px;width:auto;padding:0 14px;font-size:0.95rem;text-decoration:none;z-index:20;">🏠 Trang chủ</a>
     <div class="floating-deco">
       <div class="deco d1">▲</div>
       <div class="deco d2">◆</div>
@@ -65,11 +66,13 @@
         </svg>
       </div>
 
-      <!-- Rotate controls -->
+      <!-- Rotate & Flip controls -->
       <div class="rotate-bar" id="rotate-bar" style="display:none">
-        <span class="rotate-label">Xoay mảnh:</span>
+        <span class="rotate-label">Chỉnh mảnh:</span>
         <button id="btn-rotate-left"  class="btn btn-rotate">↺ Trái</button>
         <button id="btn-rotate-right" class="btn btn-rotate">↻ Phải</button>
+        <button id="btn-flip"         class="btn btn-rotate">⇄ Lật</button>
+        <button id="btn-to-tray"      class="btn btn-rotate btn-tray-back">↩️ Về khay</button>
       </div>
 
       <!-- Tray: pieces tô màu để chờ kéo lên -->
@@ -85,16 +88,19 @@
     </div>
   </section>
 
-  <!-- ===== COMPLETE POPUP ===== -->
-  <div id="complete-popup" class="popup-overlay hidden">
-    <div class="popup-card">
-      <div class="popup-emoji">🎉</div>
-      <h2 class="popup-title">Tuyệt vời!</h2>
-      <div id="stars-display" class="stars-row">⭐⭐⭐</div>
-      <p class="popup-time">Thời gian: <strong id="final-time">00:00</strong></p>
+  <!-- ===== COMPLETE POPUP (Docked at bottom so user can admire their artwork) ===== -->
+  <div id="complete-popup" class="popup-overlay complete-bottom hidden">
+    <div class="popup-card complete-card">
+      <div class="complete-info">
+        <span class="popup-emoji">🎉</span>
+        <div>
+          <h2 class="popup-title">Tuyệt vời!</h2>
+          <p class="popup-meta"><span id="stars-display" class="stars-row">⭐⭐⭐</span> · ⏱ <strong id="final-time">00:00</strong></p>
+        </div>
+      </div>
       <div class="popup-actions">
         <button id="btn-next-level"      class="btn btn-primary">Bài tiếp ▶</button>
-        <button id="btn-home-from-popup" class="btn btn-secondary">🏠 Trang chủ</button>
+        <button id="btn-home-from-popup" class="btn btn-secondary">🏠 Chọn bài</button>
       </div>
     </div>
   </div>
@@ -110,5 +116,6 @@
 
 <!-- Bundle JS (không dùng ES module → chạy được với file://) -->
 <script src="js/tangram-bundle.js"></script>
+<script src="../fullscreen.js"></script>
 </body>
 </html>
