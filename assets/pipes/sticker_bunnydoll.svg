@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Long Bunny Ears -->
+  <ellipse cx="40" cy="28" rx="11" ry="24" transform="rotate(-10 40 28)" fill="#f472b6" stroke="#831843" stroke-width="3"/>
+  <ellipse cx="80" cy="28" rx="11" ry="24" transform="rotate(10 80 28)" fill="#f472b6" stroke="#831843" stroke-width="3"/>
+  <ellipse cx="40" cy="29" rx="5" ry="15" transform="rotate(-10 40 29)" fill="#fbcfe8"/>
+  <ellipse cx="80" cy="29" rx="5" ry="15" transform="rotate(10 80 29)" fill="#fbcfe8"/>
+  <!-- Fluffy Head -->
+  <circle cx="60" cy="64" r="30" fill="#f472b6" stroke="#831843" stroke-width="3"/>
+  <!-- Face -->
+  <ellipse cx="60" cy="68" rx="22" ry="18" fill="#ffe5d9"/>
+  <!-- Big mischievous eyes -->
+  <ellipse cx="49" cy="62" rx="5" ry="6.5" fill="#111"/>
+  <ellipse cx="71" cy="62" rx="5" ry="6.5" fill="#111"/>
+  <circle cx="50.5" cy="60" r="2" fill="#fff"/>
+  <circle cx="72.5" cy="60" r="2" fill="#fff"/>
+  <!-- Cute nose -->
+  <polygon points="57,69 63,69 60,72" fill="#db2777"/>
+  <!-- Big toothy grin -->
+  <path d="M44 74 Q60 85 76 74" fill="none" stroke="#111" stroke-width="2.8" stroke-linecap="round"/>
+  <polygon points="48,76 52,77 50,82" fill="#fff" stroke="#111" stroke-width="1.2"/>
+  <polygon points="54,78 58,78 56,83" fill="#fff" stroke="#111" stroke-width="1.2"/>
+  <polygon points="62,78 66,78 64,83" fill="#fff" stroke="#111" stroke-width="1.2"/>
+  <polygon points="68,77 72,76 70,82" fill="#fff" stroke="#111" stroke-width="1.2"/>
+  <!-- Fluffy Body -->
+  <rect x="38" y="90" width="44" height="22" rx="11" fill="#f472b6" stroke="#831843" stroke-width="3"/>
+</svg>

@@ -177,6 +177,45 @@
       box-shadow: 0 2px 0 #c2410c, 0 5px 10px rgba(251, 86, 7, 0.4);
     }
 
+    /* Bộ chọn chế độ chơi */
+    .mode-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 6px;
+      border-radius: 50px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .mode-btn {
+      font-family: var(--font-game);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.8);
+      background: transparent;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mode-btn:hover {
+      color: #fff;
+    }
+
+    .mode-btn.active {
+      background: linear-gradient(135deg, #2dc653, #10b981);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .mode-btn[data-mode="normal"].active {
+      background: linear-gradient(135deg, #ffbe0b, #fb5607);
+      box-shadow: 0 4px 12px rgba(251, 86, 7, 0.4);
+    }
+
     .instructions {
       color: rgba(255,255,255,0.85);
       font-size: 0.95rem;
@@ -267,6 +306,10 @@
     <!-- Màn hình Menu bắt đầu -->
     <div class="overlay start-menu" id="startMenu">
       <h1 class="game-title">FLAPPY BIRD</h1>
+      <div class="mode-selector" aria-label="Chọn chế độ chơi">
+        <button type="button" class="mode-btn" data-mode="easy">🐥 Dễ</button>
+        <button type="button" class="mode-btn active" data-mode="normal">🔥 Bình thường</button>
+      </div>
       <button class="btn-action" id="startBtn">CHƠI NGAY</button>
       <div class="instructions">
         <i class="fa-regular fa-hand-pointer"></i> Chạm màn hình hoặc nhấn phím <kbd>Space</kbd> để bay lên
@@ -287,6 +330,11 @@
             <label>Kỷ lục</label>
             <span id="bestScore" style="color: #fbbf24;">0</span>
           </div>
+        </div>
+
+        <div class="mode-selector" style="justify-content: center; margin-bottom: 16px;" aria-label="Chọn chế độ chơi lại">
+          <button type="button" class="mode-btn" data-mode="easy" style="flex: 1; padding: 8px 10px; font-size: 0.9rem;">🐥 Dễ</button>
+          <button type="button" class="mode-btn active" data-mode="normal" style="flex: 1; padding: 8px 10px; font-size: 0.9rem;">🔥 Bình thường</button>
         </div>
 
         <button class="btn-action" style="width: 100%; margin: 0; font-size: 1.1rem; padding: 12px;" id="restartBtn">
@@ -312,17 +360,35 @@
     const finalScoreDOM = document.getElementById('finalScore');
     const bestScoreDOM = document.getElementById('bestScore');
 
-    // --- KEY LƯU TRỮ TRONG LOCALSTORAGE ---
-    const STORAGE_KEY_BESTSCORE = 'flappy_bird_best_score';
+    // --- CẤU HÌNH CHẾ ĐỘ CHƠI ---
+    const DIFFICULTY_MODES = {
+      easy: {
+        pipeGap: 230,       // Khe hở giữa 2 cột cao và rộng hơn cho bé dễ bay qua
+        pipeSpeed: 2.1,     // Tốc độ di chuyển chậm hơn một chút
+        spawnInterval: 115, // Khoảng cách giữa các cặp cột thoáng hơn
+        gravity: 0.32,      // Chim rơi nhẹ hơn
+        jump: -6.8,
+        storageKey: 'flappy_bird_best_score_easy'
+      },
+      normal: {
+        pipeGap: 160,
+        pipeSpeed: 2.5,
+        spawnInterval: 100,
+        gravity: 0.38,
+        jump: -7.5,
+        storageKey: 'flappy_bird_best_score'
+      }
+    };
 
     // --- CÁC HẰNG SỐ & BIẾN CẤU HÌNH ---
     let width = canvas.width = canvas.offsetWidth || 400;
     let height = canvas.height = canvas.offsetHeight || 700;
 
     // Trạng thái hệ thống Game
+    let currentMode = 'normal';
     let isGameRunning = false;
     let score = 0;
-    let bestScore = parseInt(localStorage.getItem(STORAGE_KEY_BESTSCORE)) || 0;
+    let bestScore = parseInt(localStorage.getItem(DIFFICULTY_MODES[currentMode].storageKey)) || 0;
 
     // Thông số kỹ thuật của Chim (Bird)
     const bird = {
@@ -330,17 +396,39 @@
       y: height * 0.5,
       radius: 15,
       velocity: 0,
-      gravity: 0.38,
-      jump: -7.5,
+      gravity: DIFFICULTY_MODES.normal.gravity,
+      jump: DIFFICULTY_MODES.normal.jump,
       rotation: 0
     };
 
     // Thông số của các Ống nước (Pipes)
     let pipes = [];
     const pipeWidth = 65;
-    const pipeGap = 160;   // Khoảng trống giữa ống trên và dưới
-    const pipeSpeed = 2.5; // Tốc độ di chuyển từ phải qua trái
+    let pipeGap = DIFFICULTY_MODES.normal.pipeGap;       // Khoảng trống giữa ống trên và dưới
+    let pipeSpeed = DIFFICULTY_MODES.normal.pipeSpeed;   // Tốc độ di chuyển từ phải qua trái
+    let spawnInterval = DIFFICULTY_MODES.normal.spawnInterval;
     let frameCounter = 0;  // Bộ đếm khung hình để tạo ống nước mới
+
+    function setGameMode(mode) {
+      if (!DIFFICULTY_MODES[mode]) return;
+      currentMode = mode;
+      const cfg = DIFFICULTY_MODES[mode];
+      pipeGap = cfg.pipeGap;
+      pipeSpeed = cfg.pipeSpeed;
+      spawnInterval = cfg.spawnInterval;
+      bird.gravity = cfg.gravity;
+      bird.jump = cfg.jump;
+      bestScore = parseInt(localStorage.getItem(cfg.storageKey)) || 0;
+      bestScoreDOM.textContent = bestScore;
+
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+    }
+
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => setGameMode(btn.dataset.mode));
+    });
 
     // Thông số hình nền mặt đất (Ground)
     const groundHeight = height * 0.15;
@@ -353,6 +441,38 @@
       bird.x = width * 0.3;
       // Cập nhật lại chiều cao nền đất
     });
+
+    // --- TẢI HÌNH NHÂN VẬT DÁN LÊN CỘT ---
+    const STICKER_PATHS = [
+      './assets/pipes/sticker_bluecat.png',
+      './assets/pipes/sticker_mouse.svg',
+      './assets/pipes/sticker_catmouse.svg',
+      './assets/pipes/sticker_iceprincess.svg',
+      './assets/pipes/sticker_bunnydoll.svg',
+      './assets/pipes/sticker_larva.svg'
+    ];
+
+    const pipeStickers = STICKER_PATHS.map(src => {
+      const img = new Image();
+      img.src = src;
+      return img;
+    });
+
+    function getRandomStickerIndex() {
+      return Math.floor(Math.random() * pipeStickers.length);
+    }
+
+    function drawPipeSticker(stickerIndex, x, y, size) {
+      const img = pipeStickers[stickerIndex];
+      if (!img || !img.complete || img.naturalWidth === 0) return;
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.beginPath();
+      ctx.arc(x + size / 2, y + size / 2, size / 2 + 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.drawImage(img, x, y, size, size);
+      ctx.restore();
+    }
 
     // --- LOGIC HÌNH ẢNH (DRAWING) ---
 
@@ -435,6 +555,17 @@
         ctx.fillRect(pipe.x - 3, pipe.bottom, pipeWidth + 6, 20);
         ctx.strokeStyle = '#046c4e';
         ctx.strokeRect(pipe.x - 3, pipe.bottom, pipeWidth + 6, 20);
+
+        // Dán sticker nhân vật hoạt hình lên thân cột
+        const stickerSize = 48;
+        const stickerX = pipe.x + (pipeWidth - stickerSize) / 2;
+        if (pipe.top >= stickerSize + 28) {
+          drawPipeSticker(pipe.topSticker, stickerX, pipe.top - 24 - stickerSize, stickerSize);
+        }
+        const bottomHeight = height - pipe.bottom - groundHeight;
+        if (bottomHeight >= stickerSize + 28) {
+          drawPipeSticker(pipe.bottomSticker, stickerX, pipe.bottom + 24, stickerSize);
+        }
       });
     }
 
@@ -474,18 +605,20 @@
 
         // Xử lý tạo mới ống nước sau mỗi khoảng thời gian nhất định
         frameCounter++;
-        if (frameCounter >= 100) { // Cứ sau 100 khung hình sẽ tạo 1 cụm ống nước mới
+        if (frameCounter >= spawnInterval) { // Tạo cụm ống nước mới theo tốc độ của chế độ chơi
           frameCounter = 0;
           
           // Chiều cao ngẫu nhiên cho ống trên
           const minPipeHeight = 50;
-          const maxPipeHeight = height - groundHeight - pipeGap - minPipeHeight;
+          const maxPipeHeight = Math.max(minPipeHeight, height - groundHeight - pipeGap - minPipeHeight);
           const topHeight = Math.floor(Math.random() * (maxPipeHeight - minPipeHeight + 1)) + minPipeHeight;
           
           pipes.push({
             x: width,
             top: topHeight,
             bottom: topHeight + pipeGap,
+            topSticker: getRandomStickerIndex(),
+            bottomSticker: getRandomStickerIndex(),
             passed: false
           });
         }
@@ -563,7 +696,7 @@
       // Cập nhật kỷ lục nếu cao hơn
       if (score > bestScore) {
         bestScore = score;
-        localStorage.setItem(STORAGE_KEY_BESTSCORE, bestScore);
+        localStorage.setItem(DIFFICULTY_MODES[currentMode].storageKey, bestScore);
       }
 
       // Render bảng điểm

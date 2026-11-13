@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>🎹 Đàn Piano Cầu Vồng Cho Bé</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', 'Comic Sans MS', sans-serif;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+      color: #fff;
+      touch-action: manipulation;
+    }
+
+    /* Khung ứng dụng chính - mặc định nằm ngang toàn màn hình */
+    .piano-app {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 16px 16px;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Trên màn hình nhỏ cầm dọc (điện thoại), tự động xoay ngang 90 độ để 8 phím đàn rộng rãi */
+    @media (max-width: 900px) and (orientation: portrait) {
+      .piano-app {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 100vh;
+        height: 100vw;
+        transform: translate(-50%, -50%) rotate(90deg);
+        padding: 10px 14px 12px;
+        gap: 8px;
+      }
+    }
+
+    /* Thanh điều khiển phía trên */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 8px 14px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .back-home {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      text-decoration: none;
+      padding: 7px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.2s;
+    }
+
+    .back-home:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .app-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fde047;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      white-space: nowrap;
+    }
+
+    .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .song-select {
+      padding: 7px 12px;
+      border-radius: 10px;
+      border: 2px solid #fde047;
+      background: #1e1b4b;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      font-family: inherit;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .ctrl-btn {
+      padding: 7px 13px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.88rem;
+      font-family: inherit;
+      cursor: pointer;
+      color: #fff;
+      transition: transform 0.15s, opacity 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .ctrl-btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-demo {
+      background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-reset {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+    }
+
+    .btn-demo:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* Thanh hiển thị nốt nhạc gợi ý */
+    .guide-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(0, 0, 0, 0.28);
+      border-radius: 14px;
+      padding: 8px 14px;
+      min-height: 48px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .guide-status {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #e0e7ff;
+      white-space: nowrap;
+    }
+
+    .notes-queue {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      overflow-x: auto;
+      flex: 1;
+      padding: 2px 4px;
+      scrollbar-width: none;
+    }
+
+    .notes-queue::-webkit-scrollbar {
+      display: none;
+    }
+
+    .note-pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.7);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .note-pill.done {
+      background: rgba(34, 197, 94, 0.35);
+      color: #86efac;
+      text-decoration: line-through;
+    }
+
+    .note-pill.current {
+      background: #fde047;
+      color: #1e1b4b;
+      transform: scale(1.12);
+      box-shadow: 0 0 12px rgba(253, 224, 71, 0.8);
+    }
+
+    /* Khu vực 8 phím đàn cầu vồng */
+    .keyboard-wrap {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 22px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 6px 20px rgba(0, 0, 0, 0.4);
+      min-height: 0;
+    }
+
+    .piano-key {
+      flex: 1;
+      position: relative;
+      border: none;
+      border-radius: 14px 14px 20px 20px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 14px;
+      gap: 6px;
+      color: #fff;
+      font-family: inherit;
+      box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35), 0 14px 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+      overflow: visible;
+    }
+
+    .piano-key:active,
+    .piano-key.pressed {
+      transform: translateY(7px);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.35), 0 5px 10px rgba(0, 0, 0, 0.25);
+      filter: brightness(1.15);
+    }
+
+    /* Hiệu ứng đèn sáng gợi ý phím tiếp theo */
+    .piano-key.hint {
+      animation: keyGlow 0.9s infinite alternate ease-in-out;
+      outline: 4px solid #ffffff;
+      outline-offset: -4px;
+      z-index: 2;
+    }
+
+    .piano-key.hint::before {
+      content: "👇";
+      position: absolute;
+      top: 12px;
+      font-size: 1.8rem;
+      animation: bounceFinger 0.6s infinite alternate ease-in-out;
+      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.4));
+    }
+
+    @keyframes keyGlow {
+      0% {
+        box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 255, 255, 0.6);
+        filter: brightness(1.08);
+      }
+
+      100% {
+        box-shadow: 0 10px 0 rgba(0, 0, 0, 0.35), 0 0 36px #fde047, 0 0 18px #fff;
+        filter: brightness(1.3);
+      }
+    }
+
+    @keyframes bounceFinger {
+      0% {
+        transform: translateY(0);
+      }
+
+      100% {
+        transform: translateY(8px);
+      }
+    }
+
+    .key-solfege {
+      font-size: 1.45rem;
+      font-weight: 900;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+    }
+
+    .key-note {
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.22);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .key-shortcut {
+      font-size: 0.72rem;
+      opacity: 0.8;
+      font-weight: 700;
+    }
+
+    /* Nốt nhạc bay lên khi bấm */
+    .floating-note {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.8rem;
+      pointer-events: none;
+      animation: floatUpNote 0.8s ease-out forwards;
+      z-index: 10;
+    }
+
+    @keyframes floatUpNote {
+      0% {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(0.8);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -70px) scale(1.35);
+      }
+    }
+
+    /* Bảng chúc mừng hoàn thành bài hát */
+    .celebration-banner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.85);
+      background: linear-gradient(135deg, #fde047, #f59e0b);
+      color: #1e1b4b;
+      padding: 18px 28px;
+      border-radius: 22px;
+      font-size: 1.25rem;
+      font-weight: 900;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+      border: 4px solid #fff;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+
+    .celebration-banner.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    @media (max-width: 650px) {
+      .app-title {
+        font-size: 1rem;
+      }
+
+      .key-solfege {
+        font-size: 1.15rem;
+      }
+
+      .key-shortcut {
+        display: none;
+      }
+
+      .keyboard-wrap {
+        gap: 6px;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="piano-app">
+    <!-- Thanh trên cùng -->
+    <header class="top-bar">
+      <div class="brand-left">
+        <a href="index.html" class="back-home">🏠 Trang chủ</a>
+        <div class="app-title">🎹 Piano Cầu Vồng</div>
+      </div>
+
+      <div class="controls-right">
+        <select id="songSelect" class="song-select" aria-label="Chọn bài hát">
+          <option value="free">🎵 Đánh tự do</option>
+          <option value="buomvang" selected>🦋 Kìa Con Bướm Vàng</option>
+          <option value="hpbd">🎂 Chúc Mừng Sinh Nhật (HPBD)</option>
+          <option value="twinkle">⭐ Ngôi Sao Nhỏ</option>
+          <option value="babyshark">🦈 Baby Shark</option>
+          <option value="mary">🐑 Chú Cừu Nhỏ</option>
+        </select>
+        <button id="demoBtn" class="ctrl-btn btn-demo">🔊 Nghe mẫu</button>
+        <button id="resetSongBtn" class="ctrl-btn btn-reset">🔄 Lại từ đầu</button>
+      </div>
+    </header>
+
+    <!-- Thanh gợi ý nốt nhạc tiếp theo -->
+    <div class="guide-strip">
+      <div class="guide-status" id="guideStatus">✨ Nhấn phím đang phát sáng!</div>
+      <div class="notes-queue" id="notesQueue"></div>
+    </div>
+
+    <!-- 8 phím đàn cầu vồng -->
+    <main class="keyboard-wrap" id="keyboardWrap"></main>
+
+    <!-- Thông báo chúc mừng -->
+    <div class="celebration-banner" id="celebrationBanner">
+      🎉 Tuyệt vời! Bé đã đánh xong bài hát! 🌟
+    </div>
+  </div>
+
+  <script>
+    // --- 8 PHÍM ĐÀN CẦU VỒNG (ĐỒ -> ĐỐ) ---
+    const PIANO_KEYS = [
+      { id: 'C4', solfege: 'Đồ', freq: 261.63, keyHint: 'A / 1', bg: 'linear-gradient(180deg, #ff595e, #d90429)' },
+      { id: 'D4', solfege: 'Rê', freq: 293.66, keyHint: 'S / 2', bg: 'linear-gradient(180deg, #ff924c, #f77f00)' },
+      { id: 'E4', solfege: 'Mi', freq: 329.63, keyHint: 'D / 3', bg: 'linear-gradient(180deg, #ffca3a, #eab308)' },
+      { id: 'F4', solfege: 'Pha', freq: 349.23, keyHint: 'F / 4', bg: 'linear-gradient(180deg, #8ac926, #4d7c0f)' },
+      { id: 'G4', solfege: 'Son', freq: 392.00, keyHint: 'G / 5', bg: 'linear-gradient(180deg, #2ec4b6, #0d9488)' },
+      { id: 'A4', solfege: 'La', freq: 440.00, keyHint: 'H / 6', bg: 'linear-gradient(180deg, #1982c4, #1d4ed8)' },
+      { id: 'B4', solfege: 'Si', freq: 493.88, keyHint: 'J / 7', bg: 'linear-gradient(180deg, #6a4c93, #5b21b6)' },
+      { id: 'C5', solfege: 'Đố', freq: 523.25, keyHint: 'K / 8', bg: 'linear-gradient(180deg, #f72585, #be185d)' }
+    ];
+
+    const KEYBOARD_MAP = {
+      'a': 'C4', '1': 'C4',
+      's': 'D4', '2': 'D4',
+      'd': 'E4', '3': 'E4',
+      'f': 'F4', '4': 'F4',
+      'g': 'G4', '5': 'G4',
+      'h': 'A4', '6': 'A4',
+      'j': 'B4', '7': 'B4',
+      'k': 'C5', '8': 'C5'
+    };
+
+    // --- KHO BÀI HÁT THIẾU NHI ---
+    const SONGS = {
+      buomvang: {
+        title: '🦋 Kìa Con Bướm Vàng',
+        tempo: 420,
+        notes: [
+          'C4', 'D4', 'E4', 'C4',
+          'C4', 'D4', 'E4', 'C4',
+          'E4', 'F4', 'G4',
+          'E4', 'F4', 'G4',
+          'G4', 'A4', 'G4', 'F4', 'E4', 'C4',
+          'G4', 'A4', 'G4', 'F4', 'E4', 'C4',
+          'C4', 'G4', 'C4',
+          'C4', 'G4', 'C4'
+        ]
+      },
+      hpbd: {
+        title: '🎂 Chúc Mừng Sinh Nhật',
+        tempo: 430,
+        notes: [
+          'C4', 'C4', 'D4', 'C4', 'F4', 'E4',
+          'C4', 'C4', 'D4', 'C4', 'G4', 'F4',
+          'C4', 'C4', 'C5', 'A4', 'F4', 'E4', 'D4',
+          'B4', 'B4', 'A4', 'F4', 'G4', 'F4'
+        ]
+      },
+      twinkle: {
+        title: '⭐ Ngôi Sao Nhỏ',
+        tempo: 420,
+        notes: [
+          'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
+          'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4',
+          'G4', 'G4', 'F4', 'F4', 'E4', 'E4', 'D4',
+          'G4', 'G4', 'F4', 'F4', 'E4', 'E4', 'D4',
+          'C4', 'C4', 'G4', 'G4', 'A4', 'A4', 'G4',
+          'F4', 'F4', 'E4', 'E4', 'D4', 'D4', 'C4'
+        ]
+      },
+      babyshark: {
+        title: '🦈 Baby Shark',
+        tempo: 320,
+        notes: [
+          'C4', 'D4', 'F4', 'F4', 'F4', 'F4', 'F4', 'F4', 'F4',
+          'C4', 'D4', 'F4', 'F4', 'F4', 'F4', 'F4', 'F4', 'F4',
+          'C4', 'D4', 'F4', 'F4', 'F4', 'F4', 'F4', 'F4', 'F4',
+          'F4', 'F4', 'E4'
+        ]
+      },
+      mary: {
+        title: '🐑 Chú Cừu Nhỏ',
+        tempo: 400,
+        notes: [
+          'E4', 'D4', 'C4', 'D4', 'E4', 'E4', 'E4',
+          'D4', 'D4', 'D4',
+          'E4', 'G4', 'G4',
+          'E4', 'D4', 'C4', 'D4', 'E4', 'E4', 'E4',
+          'E4', 'D4', 'D4', 'E4', 'D4', 'C4'
+        ]
+      }
+    };
+
+    // --- WEB AUDIO API: ÂM THANH PIANO ẤM & TRONG ---
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playNoteSound(freq) {
+      const ctx = getAudioContext();
+      const now = ctx.currentTime;
+
+      // Kết hợp sóng chính + hài âm bậc 2 để âm thanh giống đàn piano đồ chơi thật
+      const oscMain = ctx.createOscillator();
+      const oscHarmonic = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      const harmonicGain = ctx.createGain();
+
+      oscMain.type = 'triangle';
+      oscMain.frequency.setValueAtTime(freq, now);
+
+      oscHarmonic.type = 'sine';
+      oscHarmonic.frequency.setValueAtTime(freq * 2, now);
+      harmonicGain.gain.setValueAtTime(0.2, now);
+
+      // Đường bao ADSR mềm mại
+      gainNode.gain.setValueAtTime(0.001, now);
+      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+
+      oscMain.connect(gainNode);
+      oscHarmonic.connect(harmonicGain);
+      harmonicGain.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      oscMain.start(now);
+      oscHarmonic.start(now);
+      oscMain.stop(now + 0.8);
+      oscHarmonic.stop(now + 0.8);
+    }
+
+    // --- TRẠNG THÁI CHƠI ---
+    let currentSongKey = 'buomvang';
+    let currentStep = 0;
+    let isDemoPlaying = false;
+    let demoTimers = [];
+
+    const keyboardWrap = document.getElementById('keyboardWrap');
+    const songSelect = document.getElementById('songSelect');
+    const demoBtn = document.getElementById('demoBtn');
+    const resetSongBtn = document.getElementById('resetSongBtn');
+    const guideStatus = document.getElementById('guideStatus');
+    const notesQueue = document.getElementById('notesQueue');
+    const celebrationBanner = document.getElementById('celebrationBanner');
+
+    const keyElements = {};
+
+    // Tạo 8 phím đàn trên giao diện
+    function renderKeyboard() {
+      keyboardWrap.innerHTML = '';
+      PIANO_KEYS.forEach(k => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'piano-key';
+        btn.dataset.note = k.id;
+        btn.style.background = k.bg;
+
+        btn.innerHTML = `
+          <span class="key-solfege">${k.solfege}</span>
+          <span class="key-note">${k.id}</span>
+          <span class="key-shortcut">${k.keyHint}</span>
+        `;
+
+        // Dùng pointerdown để phản hồi tức thì cả chuột lẫn cảm ứng đa điểm
+        btn.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          triggerKey(k.id, true);
+        });
+
+        keyboardWrap.appendChild(btn);
+        keyElements[k.id] = btn;
+      });
+    }
+
+    function getSolfege(noteId) {
+      const found = PIANO_KEYS.find(k => k.id === noteId);
+      return found ? found.solfege : noteId;
+    }
+
+    function spawnFloatingNote(keyEl) {
+      const icons = ['🎵', '🎶', '✨', '⭐'];
+      const span = document.createElement('span');
+      span.className = 'floating-note';
+      span.textContent = icons[Math.floor(Math.random() * icons.length)];
+      keyEl.appendChild(span);
+      setTimeout(() => span.remove(), 800);
+    }
+
+    // Khi bấm phím (do bé bấm hoặc do máy đánh mẫu)
+    function triggerKey(noteId, isUserAction = true) {
+      const keyData = PIANO_KEYS.find(k => k.id === noteId);
+      const keyEl = keyElements[noteId];
+      if (!keyData || !keyEl) return;
+
+      playNoteSound(keyData.freq);
+      keyEl.classList.add('pressed');
+      spawnFloatingNote(keyEl);
+      setTimeout(() => keyEl.classList.remove('pressed'), 160);
+
+      if (!isUserAction || currentSongKey === 'free' || isDemoPlaying) return;
+
+      const song = SONGS[currentSongKey];
+      if (!song) return;
+
+      const expectedNote = song.notes[currentStep];
+      if (noteId === expectedNote) {
+        currentStep++;
+        if (currentStep >= song.notes.length) {
+          updateGuideUI();
+          showCelebration(song.title);
+        } else {
+          updateGuideUI();
+        }
+      }
+    }
+
+    // Cập nhật đèn sáng gợi ý và hàng nốt nhạc phía trên
+    function updateGuideUI() {
+      Object.values(keyElements).forEach(el => el.classList.remove('hint'));
+      notesQueue.innerHTML = '';
+
+      if (currentSongKey === 'free') {
+        guideStatus.textContent = '🎶 Chế độ tự do: Bé thỏa sức sáng tác!';
+        demoBtn.disabled = true;
+        resetSongBtn.disabled = true;
+        return;
+      }
+
+      const song = SONGS[currentSongKey];
+      demoBtn.disabled = isDemoPlaying;
+      resetSongBtn.disabled = false;
+
+      if (currentStep >= song.notes.length) {
+        guideStatus.textContent = `🏆 Hoàn thành ${song.title}!`;
+      } else {
+        const nextNote = song.notes[currentStep];
+        guideStatus.textContent = `👉 Nhấn phím: ${getSolfege(nextNote)} (${currentStep + 1}/${song.notes.length})`;
+        if (keyElements[nextNote]) {
+          keyElements[nextNote].classList.add('hint');
+        }
+      }
+
+      song.notes.forEach((n, idx) => {
+        const pill = document.createElement('span');
+        pill.className = 'note-pill';
+        if (idx < currentStep) pill.classList.add('done');
+        else if (idx === currentStep) pill.classList.add('current');
+        pill.textContent = getSolfege(n);
+        notesQueue.appendChild(pill);
+      });
+
+      const activePill = notesQueue.querySelector('.note-pill.current');
+      if (activePill) {
+        activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+
+    function showCelebration(songTitle) {
+      celebrationBanner.textContent = `🎉 Tuyệt vời! Bé đã đánh xong bài ${songTitle}! 🌟`;
+      celebrationBanner.classList.add('show');
+      setTimeout(() => {
+        celebrationBanner.classList.remove('show');
+      }, 2600);
+    }
+
+    function stopDemo() {
+      demoTimers.forEach(t => clearTimeout(t));
+      demoTimers = [];
+      isDemoPlaying = false;
+      updateGuideUI();
+    }
+
+    function playDemoSong() {
+      if (currentSongKey === 'free') return;
+      stopDemo();
+
+      const song = SONGS[currentSongKey];
+      isDemoPlaying = true;
+      demoBtn.disabled = true;
+      guideStatus.textContent = `🔊 Đang phát mẫu: ${song.title}...`;
+
+      song.notes.forEach((noteId, idx) => {
+        const t = setTimeout(() => {
+          Object.values(keyElements).forEach(el => el.classList.remove('hint'));
+          if (keyElements[noteId]) keyElements[noteId].classList.add('hint');
+          triggerKey(noteId, false);
+
+          if (idx === song.notes.length - 1) {
+            setTimeout(() => {
+              isDemoPlaying = false;
+              currentStep = 0;
+              updateGuideUI();
+            }, song.tempo + 150);
+          }
+        }, idx * song.tempo);
+        demoTimers.push(t);
+      });
+    }
+
+    // Sự kiện chọn bài hát & nút điều khiển
+    songSelect.addEventListener('change', () => {
+      stopDemo();
+      currentSongKey = songSelect.value;
+      currentStep = 0;
+      celebrationBanner.classList.remove('show');
+      updateGuideUI();
+    });
+
+    demoBtn.addEventListener('click', playDemoSong);
+
+    resetSongBtn.addEventListener('click', () => {
+      stopDemo();
+      currentStep = 0;
+      celebrationBanner.classList.remove('show');
+      updateGuideUI();
+    });
+
+    // Hỗ trợ bàn phím máy tính
+    document.addEventListener('keydown', (e) => {
+      if (e.repeat) return;
+      const noteId = KEYBOARD_MAP[e.key.toLowerCase()];
+      if (noteId) {
+        triggerKey(noteId, true);
+      }
+    });
+
+    // Khởi tạo ban đầu
+    renderKeyboard();
+    updateGuideUI();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Ears -->
+  <circle cx="32" cy="28" r="20" fill="#222" stroke="#111" stroke-width="3"/>
+  <circle cx="88" cy="28" r="20" fill="#222" stroke="#111" stroke-width="3"/>
+  <!-- Head -->
+  <circle cx="60" cy="52" r="28" fill="#222" stroke="#111" stroke-width="3"/>
+  <!-- Face mask -->
+  <ellipse cx="60" cy="58" rx="22" ry="18" fill="#ffe0bd"/>
+  <ellipse cx="52" cy="48" rx="9" ry="12" fill="#ffe0bd"/>
+  <ellipse cx="68" cy="48" rx="9" ry="12" fill="#ffe0bd"/>
+  <!-- Eyes -->
+  <ellipse cx="52" cy="48" rx="4" ry="6" fill="#111"/>
+  <ellipse cx="68" cy="48" rx="4" ry="6" fill="#111"/>
+  <circle cx="53.5" cy="46" r="1.5" fill="#fff"/>
+  <circle cx="69.5" cy="46" r="1.5" fill="#fff"/>
+  <!-- Cheeks -->
+  <ellipse cx="42" cy="58" rx="4.5" ry="2.5" fill="#ff8fa3" opacity="0.7"/>
+  <ellipse cx="78" cy="58" rx="4.5" ry="2.5" fill="#ff8fa3" opacity="0.7"/>
+  <!-- Nose & Smile -->
+  <ellipse cx="60" cy="56" rx="5" ry="3.5" fill="#111"/>
+  <path d="M48 63 Q60 73 72 63" fill="none" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+  <!-- Body / Red shorts -->
+  <rect x="40" y="76" width="40" height="26" rx="12" fill="#ef233c" stroke="#111" stroke-width="3"/>
+  <ellipse cx="52" cy="86" rx="3.5" ry="5" fill="#fff"/>
+  <ellipse cx="68" cy="86" rx="3.5" ry="5" fill="#fff"/>
+  <!-- White gloves waving -->
+  <circle cx="28" cy="78" r="9" fill="#fff" stroke="#111" stroke-width="3"/>
+  <circle cx="92" cy="78" r="9" fill="#fff" stroke="#111" stroke-width="3"/>
+  <!-- Yellow shoes -->
+  <ellipse cx="46" cy="107" rx="11" ry="6" fill="#ffd166" stroke="#111" stroke-width="3"/>
+  <ellipse cx="74" cy="107" rx="11" ry="6" fill="#ffd166" stroke="#111" stroke-width="3"/>
+</svg>

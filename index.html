@@ -234,12 +234,20 @@
         .game-icon {
             width: 56px;
             height: 56px;
-            border-radius: 12px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1.05rem
+            font-size: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .game-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .game-name {
@@ -286,18 +294,24 @@
                 right: 12px;
                 left: 12px;
                 top: auto;
-                bottom: 18px;
+                bottom: 14px;
                 width: auto;
-                max-height: 48%;
-            }
-
-            .game-text {
-                font-size: 3.2rem;
-                top: 6%
+                height: 70%;
+                max-height: 70%;
+                display: flex;
+                flex-direction: column;
             }
 
             .games-grid {
-                grid-template-columns: 1fr 1fr
+                grid-template-columns: 1fr 1fr;
+                overflow-y: auto;
+                flex: 1;
+                padding-right: 4px;
+            }
+
+            .game-text {
+                font-size: 2.8rem;
+                top: 4%;
             }
         }
     </style>
@@ -344,21 +358,22 @@
         // Danh sách game dễ chỉnh sửa: thêm / sửa / xóa ở đây
         // Lưu ý: `link` là đường dẫn khi click vào (ví dụ "./covua")
         const GAMES_LIST = [
-            { game: "Đoán số", link: "./doanso.html", desc: "Đoán số", color: "#ff6b6b" },
-            { game: "Đố Vui", link: "./dovui.html", desc: "Đố Vui", color: "#4ecdc4" },
-            { game: "Ghép hình", link: "./ghephinh.html", desc: "Ghép hình", color: "#ff8a80" },
-            { game: "làm toán 1", link: "./lamtoan1.html", desc: "làm toán 1", color: "#ff8a80" },
-            { game: "Mê Cung", link: "./mecung.html", desc: "Mê Cung", color: "#ff8a80" },
-            { game: "Rắn săn mồi 1", link: "./snake.html", desc: "Rắn săn mồi 1", color: "#ff8a80" },
-            { game: "rắn săn mồi 2", link: "./snake2.html", desc: "rắn săn mồi 2", color: "#ff8a80" },
-            { game: "rắn săn mồi 3D", link: "./snake3d.html", desc: "rắn săn mồi 3D", color: "#ff8a80" },
-            { game: "Thoát khỏi mê cung", link: "./thoatkhoimecung.html", desc: "Thoát khỏi mê cung", color: "#ff8a80" },
-            { game: "Tìm Bóng", link: "./timbong.html", desc: "Tìm Bóng", color: "#ff8a80" },
-            { game: "Vượt chướng ngại vật", link: "./vcnv.html", desc: "Vượt chướng ngại vật", color: "#ff8a80" },
-            { game: "Xếp số", link: "./xepso.html", desc: "Xếp số", color: "#ff8a80" },
-            { game: "Quay số may mắn", link: "./spin2.html", desc: "Lucky Draw cao cấp", color: "#00f2fe" },
-            { game: "Flappy Bird", link: "./flappybird.html", desc: "Game bay qua ống nước", color: "#ffbe0b" },
-            // bạn có thể thêm nhiều mục nữa
+            { game: "Đoán số", link: "./doanso.html", desc: "Đoán số bí mật", color: "#ff6b6b", icon: "🔢" },
+            { game: "Đố Vui", link: "./dovui.html", desc: "Trả lời câu đố", color: "#4ecdc4", icon: "💡" },
+            { game: "Ghép hình", link: "./ghephinh.html", desc: "Ghép tranh thông minh", color: "#a78bfa", icon: "🧩" },
+            { game: "Làm toán 1", link: "./lamtoan1.html", desc: "Luyện cộng trừ nhân chia", color: "#f59e0b", icon: "🧮" },
+            { game: "Mê Cung", link: "./mecung.html", desc: "Tìm đường ra", color: "#10b981", icon: "🗺️" },
+            { game: "Rắn săn mồi 1", link: "./snake.html", desc: "Rắn săn mồi cổ điển", color: "#22c55e", icon: "🐍" },
+            { game: "Rắn săn mồi 2", link: "./snake2.html", desc: "Rắn săn mồi bản 2", color: "#14b8a6", icon: "🐉" },
+            { game: "Rắn săn mồi 3D", link: "./snake3d.html", desc: "Rắn săn mồi 3D", color: "#06b6d4", icon: "🦖" },
+            { game: "Thoát khỏi mê cung", link: "./thoatkhoimecung.html", desc: "Vượt thử thách mê cung", color: "#f97316", icon: "🏃" },
+            { game: "Tìm Bóng", link: "./timbong.html", desc: "Tìm bóng đúng hình", color: "#ec4899", icon: "🔍" },
+            { game: "Vượt chướng ngại vật", link: "./vcnv.html", desc: "Nhảy vượt thử thách", color: "#eab308", icon: "🚧" },
+            { game: "Xếp số", link: "./xepso.html", desc: "Sắp xếp các con số", color: "#6366f1", icon: "🎲" },
+            { game: "Quay số may mắn", link: "./spin2.html", desc: "Vòng quay may mắn", color: "#00b4d8", icon: "🎡" },
+            { game: "Flappy Bird", link: "./flappybird.html", desc: "Chim bay qua ống nước", color: "#ffbe0b", icon: "🐦" },
+            { game: "Piano Cầu Vồng", link: "./piano.html", desc: "Đàn 8 phím tập đánh nhạc", color: "#a855f7", icon: "🎹" },
+            // bạn có thể thêm nhiều mục nữa (hỗ trợ cả `icon` emoji hoặc `image: "./ten-anh.png"`)
         ];
 
         // internal array (có thể thay đổi thứ tự khi shuffle)
@@ -384,10 +399,20 @@
 
                 const icon = document.createElement('div');
                 icon.className = 'game-icon';
-                // Icon hiển thị chữ đầu của tên game, hoặc bạn có thể dùng ảnh
-                const short = (g.game || '').split(' ').map(s => s[0]).slice(0, 2).join('');
-                icon.textContent = short;
-                icon.style.background = `linear-gradient(180deg, ${g.color || '#888'}, rgba(0,0,0,0.06))`;
+                // Ưu tiên ảnh -> biểu tượng emoji -> chữ cái đầu
+                if (g.image) {
+                    const img = document.createElement('img');
+                    img.src = g.image;
+                    img.alt = g.game;
+                    icon.appendChild(img);
+                } else if (g.icon) {
+                    icon.textContent = g.icon;
+                } else {
+                    const short = (g.game || '').split(' ').map(s => s[0]).slice(0, 2).join('');
+                    icon.textContent = short;
+                    icon.style.fontSize = '1.05rem';
+                }
+                icon.style.background = `linear-gradient(180deg, ${g.color || '#888'}, rgba(0,0,0,0.18))`;
 
                 const name = document.createElement('div');
                 name.className = 'game-name';

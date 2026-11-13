@@ -1,0 +1,15 @@
+{
+  "id": "boat_01",
+  "name": "Boat",
+  "difficulty": 1,
+  "outline": "assets/outlines/boat.svg",
+  "pieces": [
+    { "pieceId": "LT1", "targetX": 100, "targetY": 100, "rotation": 90 },
+    { "pieceId": "LT2", "targetX": 100, "targetY": -100, "rotation": 90 },
+    { "pieceId": "MT", "targetX": 300, "targetY": 300, "rotation": 0 },
+    { "pieceId": "ST1", "targetX": 300, "targetY": 200, "rotation": 0 },
+    { "pieceId": "ST2", "targetX": 100, "targetY": 400, "rotation": 0 },
+    { "pieceId": "SQ", "targetX": 200, "targetY": 300, "rotation": 0 },
+    { "pieceId": "PA", "targetX": 100, "targetY": 200, "rotation": 0 }
+  ]
+}

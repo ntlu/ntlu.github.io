@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- Blonde Braid -->
+  <circle cx="86" cy="56" r="9" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5"/>
+  <circle cx="90" cy="70" r="8" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5"/>
+  <circle cx="92" cy="83" r="6.5" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5"/>
+  <!-- Hair Top -->
+  <path d="M30 46 Q32 14 60 14 Q88 14 90 46 Z" fill="#fef08a" stroke="#ca8a04" stroke-width="2.5"/>
+  <!-- Tiara -->
+  <polygon points="48,18 54,8 60,16 66,8 72,18" fill="#bae6fd" stroke="#0284c7" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Face -->
+  <circle cx="60" cy="48" r="24" fill="#ffe5d9" stroke="#d4a373" stroke-width="2.5"/>
+  <path d="M36 42 Q48 26 62 32 Q74 26 84 42 Q74 34 60 36 Q46 34 36 42 Z" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+  <!-- Eyes -->
+  <circle cx="50" cy="49" r="4.5" fill="#0ea5e9"/>
+  <circle cx="70" cy="49" r="4.5" fill="#0ea5e9"/>
+  <circle cx="51.5" cy="47.5" r="1.5" fill="#fff"/>
+  <circle cx="71.5" cy="47.5" r="1.5" fill="#fff"/>
+  <!-- Cheeks & Smile -->
+  <ellipse cx="42" cy="56" rx="4" ry="2.5" fill="#ff8fa3" opacity="0.6"/>
+  <ellipse cx="78" cy="56" rx="4" ry="2.5" fill="#ff8fa3" opacity="0.6"/>
+  <path d="M53 60 Q60 66 67 60" fill="none" stroke="#c9184a" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Ice Blue Gown -->
+  <path d="M40 72 L80 72 L92 110 L28 110 Z" fill="#38bdf8" stroke="#0369a1" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M44 72 L76 72 L82 110 L38 110 Z" fill="#7dd3fc" opacity="0.5"/>
+  <!-- Snowflake sparkle -->
+  <text x="16" y="34" font-size="18" fill="#bae6fd">❄️</text>
+  <text x="92" y="30" font-size="14" fill="#bae6fd">✨</text>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <polygon points="100,0 200,100 100,200 0,100" fill="#D0BAFF" stroke="#FFFFFF" stroke-width="4" stroke-linejoin="round" filter="url(#shadow)"/>
+</svg>

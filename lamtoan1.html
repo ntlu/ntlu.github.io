@@ -297,6 +297,66 @@
             display: none;
         }
 
+        .op-picker {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 2px dashed #87CEEB;
+        }
+
+        .op-picker-label {
+            margin-bottom: 10px;
+            color: #2E8B57;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+
+        .op-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .op-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 8px;
+            border: 3px solid #B0E0E6;
+            border-radius: 12px;
+            background: white;
+            color: #4169E1;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+            margin-bottom: 0;
+        }
+
+        .op-toggle input {
+            display: none;
+        }
+
+        .op-toggle.active {
+            background: linear-gradient(135deg, #98FB98, #32CD32);
+            color: white;
+            border-color: #2E8B57;
+            box-shadow: 0 3px 10px rgba(50, 205, 50, 0.25);
+        }
+
+        .setup-error {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: #FFB6C1;
+            color: #8B0000;
+            border: 2px solid #FF69B4;
+            font-weight: bold;
+            text-align: center;
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
@@ -319,6 +379,10 @@
 
             .question {
                 font-size: 2em;
+            }
+
+            .op-buttons {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -377,10 +441,23 @@
                 <div class="section">
                     <h3>🎮 Cài đặt trò chơi</h3>
                     <div class="settings-row">
-                        <div class="setting-group"><label for="gameMode">🎯 Dạng toán:</label> <select id="gameMode">
-                                <option value="add-sub">Cộng / Trừ</option>
+                        <div class="setting-group"><label for="gameMode">🎯 Dạng toán:</label>
+                            <select id="gameMode">
+                                <option value="add">Cộng (+)</option>
+                                <option value="sub">Trừ (-)</option>
+                                <option value="mul">Nhân (×)</option>
+                                <option value="div">Chia (÷)</option>
+                                <option value="add-sub" selected>Cộng / Trừ</option>
                                 <option value="mul-div">Nhân / Chia</option>
-                                <option value="all">Tất cả</option>
+                                <option value="add-mul">Cộng / Nhân</option>
+                                <option value="sub-div">Trừ / Chia</option>
+                                <option value="add-div">Cộng / Chia</option>
+                                <option value="sub-mul">Trừ / Nhân</option>
+                                <option value="add-sub-mul">Cộng / Trừ / Nhân</option>
+                                <option value="add-sub-div">Cộng / Trừ / Chia</option>
+                                <option value="add-mul-div">Cộng / Nhân / Chia</option>
+                                <option value="sub-mul-div">Trừ / Nhân / Chia</option>
+                                <option value="all">Tất cả (+, -, ×, ÷)</option>
                             </select>
                         </div>
                         <div class="setting-group"><label for="difficulty">⚡ Độ khó:</label> <select id="difficulty">
@@ -397,11 +474,22 @@
                                 id="maxNumber" value="20" min="1" max="100">
                         </div>
                     </div>
+                    <div class="op-picker">
+                        <div class="op-picker-label">✨ Hoặc tự tích chọn phép tính bé thích:</div>
+                        <div class="op-buttons">
+                            <label class="op-toggle active"><input type="checkbox" class="op-checkbox" value="+" checked>➕ Cộng</label>
+                            <label class="op-toggle active"><input type="checkbox" class="op-checkbox" value="-" checked>➖ Trừ</label>
+                            <label class="op-toggle"><input type="checkbox" class="op-checkbox" value="*">✖️ Nhân</label>
+                            <label class="op-toggle"><input type="checkbox" class="op-checkbox" value="/">➗ Chia</label>
+                        </div>
+                    </div>
                     <div class="input-group" id="customTimeGroup" style="display: none; margin-top: 15px;"><label
                             for="customTime">⏱️ Thời gian tùy chỉnh (giây):</label> <input type="number" id="customTime"
                             min="1" max="60" value="5" style="width: 100px;">
                     </div>
-                </div><button class="button start-button" onclick="startGame()">🚀 Bắt đầu chơi!</button>
+                </div>
+                <div class="setup-error" id="setupError"></div>
+                <button class="button start-button" onclick="startGame()">🚀 Bắt đầu chơi!</button>
             </div><!-- Bảng xếp hạng -->
             <div class="leaderboard">
                 <h3>🏆 Bảng xếp hạng</h3>
@@ -453,6 +541,7 @@
         // Biến toàn cục cho trò chơi
         let gameState = {
             isPlaying: false,
+            isAnswered: false,
             currentQuestion: 0,
             score: 0,
             timeLeft: 0,
@@ -472,8 +561,52 @@
             setupEventListeners();
         });
 
+        // Ánh xạ dạng toán sang danh sách phép tính
+        const GAME_MODE_OPERATIONS = {
+            'add': ['+'],
+            'sub': ['-'],
+            'mul': ['*'],
+            'div': ['/'],
+            'add-sub': ['+', '-'],
+            'mul-div': ['*', '/'],
+            'add-mul': ['+', '*'],
+            'sub-div': ['-', '/'],
+            'add-div': ['+', '/'],
+            'sub-mul': ['-', '*'],
+            'add-sub-mul': ['+', '-', '*'],
+            'add-sub-div': ['+', '-', '/'],
+            'add-mul-div': ['+', '*', '/'],
+            'sub-mul-div': ['-', '*', '/'],
+            'all': ['+', '-', '*', '/']
+        };
+
         // Thiết lập các sự kiện
         function setupEventListeners() {
+            // Đồng bộ select dạng toán -> các nút chọn phép tính
+            const gameModeSelect = document.getElementById('gameMode');
+            gameModeSelect.addEventListener('change', function() {
+                syncCheckboxesFromMode(this.value);
+            });
+
+            // Đồng bộ các nút chọn phép tính -> select dạng toán
+            document.querySelectorAll('.op-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const checked = Array.from(document.querySelectorAll('.op-checkbox:checked')).map(cb => cb.value);
+                    if (checked.length === 0) {
+                        // Luôn giữ ít nhất 1 phép tính được chọn
+                        this.checked = true;
+                        return;
+                    }
+                    updateToggleStyles();
+                    const matchedMode = findModeByOperations(checked);
+                    if (matchedMode) {
+                        gameModeSelect.value = matchedMode;
+                    }
+                });
+            });
+
+            syncCheckboxesFromMode(gameModeSelect.value);
+
             // Thay đổi độ khó
             document.getElementById('difficulty').addEventListener('change', function () {
                 const customGroup = document.getElementById('customTimeGroup');
@@ -499,11 +632,43 @@
             });
         }
 
+        function syncCheckboxesFromMode(mode) {
+            const ops = GAME_MODE_OPERATIONS[mode] || ['+', '-'];
+            document.querySelectorAll('.op-checkbox').forEach(cb => {
+                cb.checked = ops.includes(cb.value);
+            });
+            updateToggleStyles();
+        }
+
+        function updateToggleStyles() {
+            document.querySelectorAll('.op-toggle').forEach(label => {
+                const cb = label.querySelector('.op-checkbox');
+                label.classList.toggle('active', cb.checked);
+            });
+        }
+
+        function findModeByOperations(ops) {
+            for (const [mode, modeOps] of Object.entries(GAME_MODE_OPERATIONS)) {
+                if (modeOps.length === ops.length && modeOps.every(op => ops.includes(op))) {
+                    return mode;
+                }
+            }
+            return null;
+        }
+
+        function showSetupError(msg) {
+            const errEl = document.getElementById('setupError');
+            errEl.textContent = msg;
+            errEl.style.display = msg ? 'block' : 'none';
+        }
+
         // Bắt đầu trò chơi
         function startGame() {
+            showSetupError('');
             const playerName = document.getElementById('playerName').value.trim();
             if (!playerName) {
-                showMessage('Vui lòng nhập tên của bạn!', 'wrong');
+                showSetupError('Vui lòng nhập tên của bạn!');
+                document.getElementById('playerName').focus();
                 return;
             }
 
@@ -515,8 +680,8 @@
             gameState.maxNumber = parseInt(document.getElementById('maxNumber').value);
 
             // Kiểm tra phạm vi số hợp lệ
-            if (gameState.minNumber >= gameState.maxNumber) {
-                showMessage('Số lớn nhất phải lớn hơn số nhỏ nhất!', 'wrong');
+            if (isNaN(gameState.minNumber) || isNaN(gameState.maxNumber) || gameState.minNumber >= gameState.maxNumber) {
+                showSetupError('Số lớn nhất phải lớn hơn số nhỏ nhất!');
                 return;
             }
 
@@ -547,6 +712,7 @@
 
         // Tạo câu hỏi mới
         function nextQuestion() {
+            gameState.isAnswered = false;
             gameState.currentQuestion++;
             gameState.timeLeft = gameState.timePerQuestion;
 
@@ -609,12 +775,7 @@
 
         // Lấy các phép toán có sẵn
         function getAvailableOperations() {
-            switch (gameState.gameMode) {
-                case 'add-sub': return ['+', '-'];
-                case 'mul-div': return ['*', '/'];
-                case 'all': return ['+', '-', '*', '/'];
-                default: return ['+', '-'];
-            }
+            return GAME_MODE_OPERATIONS[gameState.gameMode] || ['+', '-'];
         }
 
         // Tạo số ngẫu nhiên trong phạm vi
@@ -647,15 +808,39 @@
 
         // Kiểm tra đáp án
         function checkAnswer() {
-            if (!gameState.isPlaying) return;
+            if (!gameState.isPlaying || gameState.isAnswered) return;
 
-            const userAnswer = parseInt(document.getElementById('answerInput').value);
-
-            if (isNaN(userAnswer)) {
+            const rawValue = document.getElementById('answerInput').value.trim();
+            const userAnswer = parseInt(rawValue, 10);
+            
+            if (rawValue === '' || isNaN(userAnswer)) {
                 showMessage('Vui lòng nhập một số!', 'wrong');
                 return;
             }
 
+            evaluateAnswer(userAnswer);
+        }
+
+        // Hết thời gian
+        function timeUp() {
+            if (!gameState.isPlaying || gameState.isAnswered) return;
+
+            const rawValue = document.getElementById('answerInput').value.trim();
+            const userAnswer = parseInt(rawValue, 10);
+
+            if (rawValue !== '' && !isNaN(userAnswer)) {
+                evaluateAnswer(userAnswer);
+                return;
+            }
+
+            gameState.isAnswered = true;
+            showMessage(`⛔ Hết giờ! Đáp án đúng là ${gameState.currentAnswer}`, 'timeout');
+            setTimeout(() => endGame(), 2000);
+        }
+
+        // Chấm điểm đáp án đã nhập
+        function evaluateAnswer(userAnswer) {
+            gameState.isAnswered = true;
             clearInterval(gameState.timer);
 
             if (userAnswer === gameState.currentAnswer) {
@@ -666,22 +851,6 @@
             } else {
                 // Đáp án sai
                 showMessage(`❌ Sai rồi! Đáp án đúng là ${gameState.currentAnswer}`, 'wrong');
-                setTimeout(() => endGame(), 2000);
-            }
-        }
-
-        // Hết thời gian
-        function timeUp() {
-            if (!gameState.isPlaying) return;
-
-            const userAnswer = parseInt(document.getElementById('answerInput').value);
-            if (!isNaN(userAnswer) && userAnswer === gameState.currentAnswer) {
-                // Đáp án đúng nhưng hết giờ
-                gameState.score += 10;
-                showMessage('✅ Đúng rồi! Tuyệt vời! (Tự động nộp)', 'correct');
-                setTimeout(() => nextQuestion(), 1500);
-            } else {
-                showMessage(`⛔ Hết giờ! Đáp án đúng là ${gameState.currentAnswer}`, 'timeout');
                 setTimeout(() => endGame(), 2000);
             }
         }

@@ -1,0 +1,15 @@
+{
+  "id": "cat_01",
+  "name": "Cat",
+  "difficulty": 1,
+  "outline": "assets/outlines/cat.svg",
+  "pieces": [
+    { "pieceId": "LT1", "targetX": 50, "targetY": 50, "rotation": 180 },
+    { "pieceId": "LT2", "targetX": 50, "targetY": -150, "rotation": 180 },
+    { "pieceId": "MT", "targetX": 250, "targetY": 250, "rotation": 90 },
+    { "pieceId": "ST1", "targetX": 250, "targetY": 150, "rotation": 90 },
+    { "pieceId": "ST2", "targetX": 50, "targetY": 350, "rotation": 90 },
+    { "pieceId": "SQ", "targetX": 150, "targetY": 250, "rotation": 90 },
+    { "pieceId": "PA", "targetX": 50, "targetY": 150, "rotation": 90 }
+  ]
+}

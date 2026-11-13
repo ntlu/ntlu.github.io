@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Tangram Kids 🧩</title>
+  <meta name="description" content="Trò chơi xếp hình Tangram vui nhộn dành cho trẻ em">
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== HOME SCREEN ===== -->
+  <section id="home-screen" class="screen active">
+    <div class="floating-deco">
+      <div class="deco d1">▲</div>
+      <div class="deco d2">◆</div>
+      <div class="deco d3">■</div>
+      <div class="deco d4">▲</div>
+      <div class="deco d5">◆</div>
+    </div>
+    <div class="home-logo">
+      <div class="logo-icon">🧩</div>
+      <h1>Tangram Fun</h1>
+      <p class="subtitle">Trò chơi xếp hình cho bé yêu</p>
+    </div>
+    <button id="btn-play" class="btn btn-primary pulse">🎮 Chơi ngay!</button>
+  </section>
+
+  <!-- ===== LEVEL SELECT ===== -->
+  <section id="levelSelect-screen" class="screen hidden">
+    <header class="top-bar">
+      <button id="btn-back-home" class="btn btn-icon">🔙</button>
+      <h2>Chọn bài chơi</h2>
+      <div style="width:48px"></div>
+    </header>
+    <div class="level-grid" id="level-grid"></div>
+  </section>
+
+  <!-- ===== GAME SCREEN ===== -->
+  <section id="game-screen" class="screen hidden">
+    <header class="top-bar game-header">
+      <button id="btn-back-levels" class="btn btn-icon">🔙</button>
+      <h2 id="level-title">Level</h2>
+      <div id="timer" class="timer">⏱ 00:00</div>
+      <button id="btn-hint"  class="btn btn-icon" title="Gợi ý">💡</button>
+      <button id="btn-reset" class="btn btn-icon" title="Chơi lại">🔄</button>
+    </header>
+
+    <div class="game-wrapper">
+      <!-- Board SVG (viewBox 0 0 600 600) -->
+      <div class="game-board-area">
+        <svg id="game-svg"
+             xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 600 600"
+             preserveAspectRatio="xMidYMid meet">
+          <!-- Background board -->
+          <rect x="5" y="5" width="590" height="590" rx="18" ry="18"
+                fill="#EEF2FF" stroke="#D0D9FF" stroke-width="2"/>
+          <!-- Ghost outline target -->
+          <g id="outline-group" opacity="0.35"></g>
+          <!-- Pieces being played on board -->
+          <g id="pieces-group"></g>
+        </svg>
+      </div>
+
+      <!-- Rotate controls -->
+      <div class="rotate-bar" id="rotate-bar" style="display:none">
+        <span class="rotate-label">Xoay mảnh:</span>
+        <button id="btn-rotate-left"  class="btn btn-rotate">↺ Trái</button>
+        <button id="btn-rotate-right" class="btn btn-rotate">↻ Phải</button>
+      </div>
+
+      <!-- Tray: pieces tô màu để chờ kéo lên -->
+      <div class="piece-tray">
+        <p class="tray-label">Kéo các mảnh lên bảng để xếp ➤</p>
+        <svg id="tray-svg"
+             xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 700 160"
+             preserveAspectRatio="xMidYMid meet">
+          <g id="tray-pieces-group"></g>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== COMPLETE POPUP ===== -->
+  <div id="complete-popup" class="popup-overlay hidden">
+    <div class="popup-card">
+      <div class="popup-emoji">🎉</div>
+      <h2 class="popup-title">Tuyệt vời!</h2>
+      <div id="stars-display" class="stars-row">⭐⭐⭐</div>
+      <p class="popup-time">Thời gian: <strong id="final-time">00:00</strong></p>
+      <div class="popup-actions">
+        <button id="btn-next-level"      class="btn btn-primary">Bài tiếp ▶</button>
+        <button id="btn-home-from-popup" class="btn btn-secondary">🏠 Trang chủ</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- Audio (chỉ cần id, không cần src thật để chạy offline) -->
+<audio id="snd-snap"    preload="auto"></audio>
+<audio id="snd-success" preload="auto"></audio>
+
+<!-- Confetti CDN -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<!-- Bundle JS (không dùng ES module → chạy được với file://) -->
+<script src="js/tangram-bundle.js"></script>
+</body>
+</html>

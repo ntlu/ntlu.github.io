@@ -1,0 +1,15 @@
+{
+  "id": "house_01",
+  "name": "House",
+  "difficulty": 1,
+  "outline": "assets/outlines/house.svg",
+  "pieces": [
+    { "pieceId": "LT1", "targetX": 0, "targetY": 0, "rotation": 0 },
+    { "pieceId": "LT2", "targetX": 0, "targetY": 0, "rotation": 0 },
+    { "pieceId": "MT", "targetX": 200, "targetY": 200, "rotation": 0 },
+    { "pieceId": "ST1", "targetX": 200, "targetY": 100, "rotation": 0 },
+    { "pieceId": "ST2", "targetX": 0, "targetY": 300, "rotation": 0 },
+    { "pieceId": "SQ", "targetX": 100, "targetY": 200, "rotation": 0 },
+    { "pieceId": "PA", "targetX": 0, "targetY": 100, "rotation": 0 }
+  ]
+}
